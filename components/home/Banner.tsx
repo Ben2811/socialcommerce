@@ -4,34 +4,40 @@ import { ArrowRight } from "lucide-react";
 import { IMAGES } from "@/constants/images";
 
 export function Banner() {
-    return (
-        <div className="relative w-full h-[400px] bg-gray-900 overflow-hidden rounded-2xl my-6">
-            <div className="absolute inset-0 z-0">
-                <Image
-                    src={IMAGES.BANNER}
-                    alt="Tech Revolution Banner"
-                    fill
-                    className="object-cover opacity-80"
-                    priority
-                />
-            </div>
+  return (
+    <section
+      className="relative mx-auto h-[257px] w-full max-w-[1200px] overflow-hidden rounded-[20px]"
+      aria-label="Tech Revolution Banner"
+    >
+      <Image
+        src={IMAGES.BANNER}
+        alt="Tech Revolution Banner"
+        fill
+        priority
+        className="object-cover"
+      />
 
-            <div className="relative z-10 flex flex-col justify-center h-full px-8 md:px-16 max-w-2xl">
-                <h1 className="text-5xl font-bold text-white mb-2 leading-tight">
-                    TECH <br />
-                    <span className="text-purple-500">REVOLUTION</span>
-                </h1>
-                <p className="text-gray-200 text-lg mb-8">
-                    Săn ngay loạt deal công nghệ đỉnh cao giảm đến 50%.
-                </p>
-                <Link
-                    href="/shop"
-                    className="inline-flex items-center gap-2 bg-white text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition-colors w-fit"
-                >
-                    Mua Sắm Ngay
-                    <ArrowRight className="w-4 h-4" />
-                </Link>
-            </div>
-        </div>
-    );
+      <div className="absolute inset-0 bg-black/35" />
+
+      <div className="relative z-10 flex h-full  flex-col px-[76px] pt-[22px]">
+        <h1 className="text-[45px] leading-[52px] font-normal text-white">
+          TECH
+          <br />
+          <span>REVOLUTION</span>
+        </h1>
+
+        <p className="mt-2 text-sm leading-5 font-semibold tracking-[0.01em] text-white">
+          Săn ngay loạt deal công nghệ đỉnh cao giảm đến 50%.
+        </p>
+
+        <Link
+          href="/shop"
+          className="mt-10 inline-flex h-[38px] w-fit items-center gap-[6px] rounded-md bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground shadow-xs transition-opacity hover:opacity-90"
+        >
+          Mua Sắm Ngay
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </section>
+  );
 }

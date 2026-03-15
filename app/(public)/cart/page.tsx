@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { CartItem } from "@/utils/cart";
 import { initialCartItems } from "@/constants/mock-data";
-import CartHeader from "../../components/cart/CartHeader";
-import EmptyCart from "../../components/cart/EmptyCart";
-import CartItemCard from "../../components/cart/CartItemCard";
-import OrderSummary from "../../components/cart/OrderSummary";
+import CartHeader from "../../../components/cart/CartHeader";
+import EmptyCart from "../../../components/cart/EmptyCart";
+import CartItemCard from "../../../components/cart/CartItemCard";
+import OrderSummary from "../../../components/cart/OrderSummary";
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
