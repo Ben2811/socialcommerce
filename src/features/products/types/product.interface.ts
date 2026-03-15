@@ -8,6 +8,7 @@ export const VariantZodSchema = z.object({
 });
 
 export const ProductZodSchema = z.object({
+  _id: z.string().optional(),
   name: z.string().trim().min(1, "Product name is required"),
   description: z.string().trim().optional(),
   displayPrice: z.number().min(0, "Display price must be non-negative"),
@@ -18,9 +19,8 @@ export const ProductZodSchema = z.object({
     .array(VariantZodSchema)
     .min(1, "Product must have at least one variant"),
   imageUrls: z
-    .array(z.url("Must be a valid URL"))
+    .array(z.string().url("Must be a valid URL"))
     .min(1, "Product must have at least one image URL"),
-
   inStock: z.boolean().default(true),
 });
 

@@ -15,7 +15,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { loginSchema } from "@/lib/shared/schema/login";
+import { loginSchema } from "@/features/shared/schema/login";
 import { Form } from "@base-ui/react";
 import { useForm } from "@tanstack/react-form";
 import Link from "next/link";
@@ -67,7 +67,6 @@ export default function LoginPage() {
                       name={field.name}
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      // 3. Use handleChange for proper validation tracking
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="Enter your email"
                     />

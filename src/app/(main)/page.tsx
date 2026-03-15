@@ -4,8 +4,13 @@ import {
   ProductList,
   MOCK_PRODUCTS,
 } from "@/features/products";
+import { productService } from "@/features/products/services/products.service";
 
-export default function Home() {
+export default async function Home() {
+  const productReponse = await productService.getProducts();
+
+  const products = productReponse.data?.items || [];
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="mx-auto w-full max-w-[1280px] px-10 py-8">
@@ -13,7 +18,7 @@ export default function Home() {
           <Banner />
         </div>
         <FlashSale />
-        <ProductList products={MOCK_PRODUCTS} />
+        <ProductList products={products} />
       </section>
     </main>
   );

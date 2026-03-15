@@ -25,11 +25,12 @@ class AuthService implements IAuthService {
       .addPath(API_ENDPOINTS.auth)
       .addParam("login")
       .build();
-    return apiClient.post<
-      { email: string; password: string },
-      BaseResponse<TokenResponse>
-    >(url, { email, password });
+    return apiClient.post<{ email: string; password: string }, TokenResponse>(
+      url,
+      { email, password },
+    );
   }
+
   async register(
     username: string,
     email: string,
@@ -41,8 +42,9 @@ class AuthService implements IAuthService {
       .build();
     return apiClient.post<
       { username: string; email: string; password: string },
-      BaseResponse<null>
+      null
     >(url, { username, email, password });
   }
 }
+
 export const authService = new AuthService();

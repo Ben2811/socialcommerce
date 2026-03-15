@@ -1,6 +1,6 @@
 "use client";
 import { logout as serverLogout } from "@/actions/auth/logout";
-import { User } from "@/interfaces/user.interface";
+import { User } from "@/features/profile/types/user.interface";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {

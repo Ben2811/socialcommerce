@@ -1,18 +1,22 @@
-import { User } from "@/interfaces/user.interface";
+import { User } from "@/features/profile/types/user.interface";
 import { getCookies, tokenType } from "@/features/shared/lib/cookie";
 import { userService } from "@/features/profile/services/users.service";
 
 export async function getSession(): Promise<User | null> {
-  const accessToken = await getCookies(tokenType.accessToken);
-  if (!accessToken) {
-    return null;
-  }
   try {
-    const user = await userService.getCurrentUser(accessToken);
-    if (!user) {
+    const accessToken = await getCookies(tokenType.accessToken);
+    
+    if (!accessToken) {
       return null;
     }
-    return user;
+
+    const response = await userService.getCurrentUser(accessToken);
+    
+    if (!response.success || !response.data) {
+      return null;
+    }
+
+    return response.data;
   } catch (error) {
     console.error("Error fetching user session:", error);
     return null;
