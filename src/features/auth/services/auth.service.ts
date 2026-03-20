@@ -7,13 +7,17 @@ type TokenResponse = {
   accessToken: string;
 };
 
+interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+  address: string;
+  phonenumber: string;
+}
+
 interface IAuthService {
   login(email: string, password: string): Promise<BaseResponse<TokenResponse>>;
-  register(
-    username: string,
-    email: string,
-    password: string,
-  ): Promise<BaseResponse<null>>;
+  register(payload: RegisterPayload): Promise<BaseResponse<null>>;
 }
 
 class AuthService implements IAuthService {
@@ -31,19 +35,12 @@ class AuthService implements IAuthService {
     );
   }
 
-  async register(
-    username: string,
-    email: string,
-    password: string,
-  ): Promise<BaseResponse<null>> {
+  async register(payload: RegisterPayload): Promise<BaseResponse<null>> {
     const url = new URLBuilder()
       .addPath(API_ENDPOINTS.auth)
       .addParam("register")
       .build();
-    return apiClient.post<
-      { username: string; email: string; password: string },
-      null
-    >(url, { username, email, password });
+    return apiClient.post<RegisterPayload, null>(url, payload);
   }
 }
 
