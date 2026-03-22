@@ -9,7 +9,7 @@ export class URLBuilder {
     this.baseURL = baseURL || serverURL;
   }
 
-  addPath(path: Endpoints): URLBuilder {
+  addPath(path: string): URLBuilder {
     this.baseURL = this.baseURL + `/${path.replace(/^\/|\/$/g, "")}`;
     return this;
   }
