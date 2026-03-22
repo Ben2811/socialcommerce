@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   useAdminProducts,
   useUpdateAdminProductStatus,
@@ -9,26 +9,26 @@ import {
 import { ProductsHeader } from "@/features/admin/components/products/ProductsHeader";
 import { ProductsTable } from "@/features/admin/components/products/ProductsTable";
 import { DeleteProductDialog } from "@/features/admin/components/products/DeleteProductForm";
+import { AdminPagination } from "@/features/admin/components/shared/AdminPagination";
 import type { AdminProduct } from "@/features/admin/types/product";
+
+const LIMIT = 10;
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [products, setProducts] = useState<AdminProduct[]>([]);
+  const [page, setPage] = useState(1);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<AdminProduct | null>(
     null,
   );
 
-  const { data: productsData, isLoading, error } = useAdminProducts(1, 100);
+  const { data: productsData, isLoading, error } = useAdminProducts(page, LIMIT);
+  const products = productsData?.items ?? [];
+  const totalPages = productsData?.totalPages ?? 1;
+
   const updateStatusMutation = useUpdateAdminProductStatus();
   const deleteProductMutation = useDeleteAdminProduct();
-
-  useEffect(() => {
-    if (productsData?.items) {
-      setProducts(productsData.items);
-    }
-  }, [productsData]);
 
   const handleUpdateStatus = async (
     productId: string,
@@ -62,6 +62,12 @@ export default function ProductsPage() {
           onUpdateStatus={handleUpdateStatus}
           onDelete={handleDeleteProduct}
           isLoading={isLoading}
+        />
+
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
 
         {error && (

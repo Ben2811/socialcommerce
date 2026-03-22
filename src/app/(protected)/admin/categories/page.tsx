@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   useAdminCategories,
   useCreateAdminCategory,
@@ -11,11 +11,14 @@ import { CategoriesHeader } from "@/features/admin/components/categories/Categor
 import { CategoriesTable } from "@/features/admin/components/categories/CategoriesTable";
 import { CategoryFormDialog } from "@/features/admin/components/categories/CategoryFormDialog";
 import { DeleteCategoryDialog } from "@/features/admin/components/categories/DeleteCategoryForm";
+import { AdminPagination } from "@/features/admin/components/shared/AdminPagination";
 import type { AdminCategory, CreateCategoryInput, UpdateCategoryInput } from "@/features/admin/types/category";
+
+const LIMIT = 10;
 
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [categories, setCategories] = useState<AdminCategory[]>([]);
+  const [page, setPage] = useState(1);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<AdminCategory | null>(null);
@@ -23,16 +26,13 @@ export default function CategoriesPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState<AdminCategory | null>(null);
 
-  const { data: categoriesData, isLoading, error } = useAdminCategories();
+  const { data: categoriesData, isLoading, error } = useAdminCategories(page, LIMIT);
+  const categories = categoriesData?.items ?? [];
+  const totalPages = categoriesData?.totalPages ?? 1;
+
   const createMutation = useCreateAdminCategory();
   const updateMutation = useUpdateAdminCategory();
   const deleteMutation = useDeleteAdminCategory();
-
-  useEffect(() => {
-    if (categoriesData) {
-      setCategories(categoriesData);
-    }
-  }, [categoriesData]);
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -83,6 +83,12 @@ export default function CategoriesPage() {
           onEdit={handleEditCategory}
           onDelete={handleDeleteCategory}
           isLoading={isLoading}
+        />
+
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
 
         {error && (

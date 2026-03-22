@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   UsersHeader,
   UsersTable,
@@ -14,10 +14,13 @@ import {
 } from "@/features/admin";
 import { UserFormDialog } from "@/features/admin/components/users/UserFormDialog";
 import { DeleteUserDialog } from "@/features/admin/components/users/DeleteUserForm";
+import { AdminPagination } from "@/features/admin/components/shared/AdminPagination";
+
+const LIMIT = 10;
 
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [page, setPage] = useState(1);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -25,16 +28,13 @@ export default function UsersPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
 
-  const { data: usersData, isLoading, error } = useUsers(1, 100);
+  const { data: usersData, isLoading, error } = useUsers(page, LIMIT);
+  const users = usersData?.items ?? [];
+  const totalPages = usersData?.totalPages ?? 1;
+
   const createUserMutation = useCreateUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
-
-  useEffect(() => {
-    if (usersData?.items) {
-      setUsers(usersData.items);
-    }
-  }, [usersData]);
 
   const handleAddUser = () => {
     setEditingUser(null);
@@ -87,6 +87,12 @@ export default function UsersPage() {
           onEdit={handleEditUser}
           onDelete={handleDeleteUser}
           isLoading={isLoading}
+        />
+
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
         />
 
         {error && (

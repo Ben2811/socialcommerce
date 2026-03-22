@@ -16,16 +16,18 @@ import type {
 export const adminCategoryQueryKeys = {
   all: ["admin-categories"] as const,
   lists: () => [...adminCategoryQueryKeys.all, "list"] as const,
+  list: (page?: number, limit?: number) =>
+    [...adminCategoryQueryKeys.lists(), { page, limit }] as const,
 };
 
-export function useAdminCategories() {
+export function useAdminCategories(page: number = 1, limit: number = 10) {
   return useQuery({
-    queryKey: adminCategoryQueryKeys.lists(),
+    queryKey: adminCategoryQueryKeys.list(page, limit),
     queryFn: async () => {
-      const response = await getAdminCategories();
+      const response = await getAdminCategories(page, limit);
       if (!response.success)
         throw new Error(response.message || "Failed to fetch categories");
-      return response.data as AdminCategory[];
+      return response.data;
     },
   });
 }

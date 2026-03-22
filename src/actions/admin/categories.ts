@@ -4,7 +4,7 @@ import { getCookies, tokenType } from "@/features/shared/lib/cookie";
 import { apiClient } from "@/features/shared/api/client";
 import { URLBuilder } from "@/features/shared/lib/urlbuilder";
 import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
-import { BaseResponse } from "@/types/global.types";
+import { BaseResponse, PaginationResponse } from "@/types/global.types";
 import type {
   AdminCategory,
   CreateCategoryInput,
@@ -17,12 +17,16 @@ async function getToken(): Promise<string> {
   return token;
 }
 
-export async function getAdminCategories(): Promise<BaseResponse<AdminCategory[]>> {
+export async function getAdminCategories(
+  page = 1,
+  limit = 10,
+): Promise<BaseResponse<PaginationResponse<AdminCategory>>> {
   const token = await getToken();
   const url = new URLBuilder()
     .addPath(API_ENDPOINTS.admin.categories as any)
+    .addSearchParams({ page, limit })
     .build();
-  return apiClient.get<AdminCategory[]>(url, token);
+  return apiClient.get<PaginationResponse<AdminCategory>>(url, token);
 }
 
 export async function createAdminCategory(

@@ -1,22 +1,29 @@
 import type { AdminCategory, CreateCategoryInput, UpdateCategoryInput } from "../types/category";
-import { BaseResponse } from "@/types/global.types";
+import { BaseResponse, PaginationResponse } from "@/types/global.types";
 import { URLBuilder } from "@/features/shared/lib/urlbuilder";
 import { apiClient } from "@/features/shared/api/client";
 import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
 
 interface IAdminCategoriesService {
-  getCategories(): Promise<BaseResponse<AdminCategory[]>>;
+  getCategories(
+    page?: number,
+    limit?: number,
+  ): Promise<BaseResponse<PaginationResponse<AdminCategory>>>;
   createCategory(input: CreateCategoryInput): Promise<BaseResponse<AdminCategory>>;
   updateCategory(id: string, input: UpdateCategoryInput): Promise<BaseResponse<AdminCategory>>;
   deleteCategory(id: string): Promise<BaseResponse<boolean>>;
 }
 
 export class AdminCategoriesService implements IAdminCategoriesService {
-  async getCategories(): Promise<BaseResponse<AdminCategory[]>> {
+  async getCategories(
+    page = 1,
+    limit = 10,
+  ): Promise<BaseResponse<PaginationResponse<AdminCategory>>> {
     const url = new URLBuilder()
       .addPath(API_ENDPOINTS.admin.categories as any)
+      .addSearchParams({ page, limit })
       .build();
-    return apiClient.get<AdminCategory[]>(url);
+    return apiClient.get<PaginationResponse<AdminCategory>>(url);
   }
 
   async createCategory(input: CreateCategoryInput): Promise<BaseResponse<AdminCategory>> {
