@@ -24,6 +24,7 @@ export function useProducts(filter: ProductFilter = {}) {
     getNextPageParam: (
       lastPage: { data: PaginationResponse<Product> },
     ) => {
+      if (!lastPage.data) return undefined;
       const { currentPage, totalPages } = lastPage.data;
       return currentPage < totalPages ? currentPage + 1 : undefined;
     },

@@ -3,8 +3,9 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth/providers/AuthProvider";
-import { LogOut, ShoppingCart, User } from "lucide-react";
+import { LogOut, ShoppingCart, User, Settings } from "lucide-react";
 import Link from "next/link";
+import type { UserRole } from "@/features/admin/types/user";
 
 
 export function UserMenu() {
@@ -71,6 +72,17 @@ export function UserMenu() {
             </Link>
           }
         ></DropdownMenuItem>
+        {(user.role as UserRole) === "admin" && (
+          <DropdownMenuItem
+            className="cursor-pointer"
+            render={
+              <Link href="/admin">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Quản lý</span>
+              </Link>
+            }
+          ></DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={logout}
