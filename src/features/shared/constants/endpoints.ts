@@ -3,6 +3,7 @@ export const API_ENDPOINTS = {
   users: "/api/users",
   products: "/api/products",
   categories: "/api/categories",
+  reviews: "/api/reviews",
   admin: {
     users: "/api/admin/users",
     products: "/api/admin/products",

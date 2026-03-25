@@ -1,5 +1,11 @@
 import { productService } from "@/features/products/services/products.service";
 import { Product } from "@/features/products/types/product.interface";
+import { getSession } from "@/features/auth/lib/getSession";
+import {
+  ProductReviewSection,
+  reviewService,
+  type ProductReviewsBundle,
+} from "@/features/reviews";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -63,12 +69,33 @@ export default async function ProductDetailsPage(
   params: PageProps<"/products/[productId]">,
 ) {
   const { productId } = await params.params;
-  const response = await productService.getProductById(productId);
+  const [response, reviewsResponse, session] = await Promise.all([
+    productService.getProductById(productId),
+    reviewService.getProductReviewsBundle(productId),
+    getSession(),
+  ]);
+
   const product = response.data as Product | null;
+  const reviewsBundle: ProductReviewsBundle = reviewsResponse.success
+    ? reviewsResponse.data
+    : {
+      reviews: [],
+      summary: {
+        averageRating: 0,
+        totalReviews: 0,
+        ratingBreakdown: {
+          1: 0,
+          2: 0,
+          3: 0,
+          4: 0,
+          5: 0,
+        },
+      },
+    };
 
   const title = product?.name || "Sản phẩm";
-  const rating = getAverageRating();
-  const reviewCount = 123;
+  const rating = getAverageRating(reviewsBundle.summary.averageRating);
+  const reviewCount = reviewsBundle.summary.totalReviews;
 
   const primaryImage = product?.imageUrls?.[0];
   const galleryImages = product?.imageUrls ?? [];
@@ -99,9 +126,9 @@ export default async function ProductDetailsPage(
 
   const variants = product?.variants?.length
     ? product.variants.map((variant) => ({
-        label: "SKU",
-        value: variant.sku,
-      }))
+      label: "SKU",
+      value: variant.sku,
+    }))
     : [{ label: "SKU", value: "Standard" }];
 
   const breadcrumbs = [
@@ -162,11 +189,10 @@ export default async function ProductDetailsPage(
                       <button
                         key={`${image}-${index}`}
                         type="button"
-                        className={`overflow-hidden rounded-2xl border bg-white p-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                          index === 0
-                            ? "border-rose-500 ring-2 ring-rose-100"
-                            : "border-zinc-200"
-                        }`}
+                        className={`overflow-hidden rounded-2xl border bg-white p-1 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${index === 0
+                          ? "border-rose-500 ring-2 ring-rose-100"
+                          : "border-zinc-200"
+                          }`}
                         aria-label={`Chọn ảnh ${index + 1}`}
                       >
                         <div className="relative aspect-square w-full overflow-hidden rounded-xl">
@@ -374,57 +400,11 @@ export default async function ProductDetailsPage(
           </div>
         </section>
 
-        <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-zinc-200/80">
-          <SectionTitle
-            title="Đánh giá khách hàng"
-            subtitle="Hiển thị review để tăng độ tin cậy và chuyển đổi."
-          />
-
-          <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-            <div className="rounded-3xl bg-zinc-50 p-5 ring-1 ring-zinc-200/80">
-              <div className="text-center">
-                <p className="text-5xl font-extrabold text-zinc-950">{rating}</p>
-                <div className="mt-2 flex justify-center text-amber-500">
-                  <StarRating rating={Number(rating)} />
-                </div>
-                <p className="mt-2 text-sm text-zinc-500">{reviewCount} lượt đánh giá</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                {
-                  name: "Nguyễn Minh",
-                  time: "2 ngày trước",
-                  content:
-                    "Sản phẩm đóng gói tốt, cầm rất chắc tay và đúng mô tả. Giao diện trang sản phẩm rõ ràng nên mình quyết định mua khá nhanh.",
-                },
-                {
-                  name: "Trần Anh",
-                  time: "1 tuần trước",
-                  content:
-                    "Thiết kế đẹp, phần CTA nổi bật. Mình thích cách hiển thị thông tin ngắn gọn nhưng đủ ý, rất dễ đọc trên mobile.",
-                },
-              ].map((review) => (
-                <article
-                  key={`${review.name}-${review.time}`}
-                  className="rounded-2xl border border-zinc-200 p-4"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <h3 className="font-semibold text-zinc-900">{review.name}</h3>
-                      <p className="text-xs text-zinc-500">{review.time}</p>
-                    </div>
-                    <div className="text-amber-500">
-                      <StarRating rating={5} />
-                    </div>
-                  </div>
-                  <p className="mt-3 text-sm leading-6 text-zinc-700">{review.content}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        <ProductReviewSection
+          productId={productId}
+          currentUserId={session?._id}
+          initialData={reviewsBundle}
+        />
 
         <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-zinc-200/80">
           <SectionTitle
