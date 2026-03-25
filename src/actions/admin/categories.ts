@@ -1,20 +1,24 @@
 "use server";
 
 import { getCookies, tokenType } from "@/features/shared/lib/cookie";
-import { apiClient } from "@/features/shared/api/client";
-import { URLBuilder } from "@/features/shared/lib/urlbuilder";
-import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
 import { BaseResponse, PaginationResponse } from "@/types/global.types";
 import type {
   AdminCategory,
   CreateCategoryInput,
   UpdateCategoryInput,
 } from "@/features/admin/types/category";
+import { adminCategoriesService } from "@/features/admin/services/categories.service";
 
-async function getToken(): Promise<string> {
-  const token = await getCookies(tokenType.accessToken);
-  if (!token) throw new Error("Unauthorized");
-  return token;
+async function getToken(): Promise<string | null> {
+  return getCookies(tokenType.accessToken);
+}
+
+function unauthorizedResponse<T>(): BaseResponse<T> {
+  return {
+    success: false,
+    data: null as T,
+    message: "Bạn cần đăng nhập để thực hiện thao tác này",
+  };
 }
 
 export async function getAdminCategories(
@@ -22,21 +26,16 @@ export async function getAdminCategories(
   limit = 10,
 ): Promise<BaseResponse<PaginationResponse<AdminCategory>>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.categories as any)
-    .addSearchParams({ page, limit })
-    .build();
-  return apiClient.get<PaginationResponse<AdminCategory>>(url, token);
+  if (!token) return unauthorizedResponse<PaginationResponse<AdminCategory>>();
+  return adminCategoriesService.getCategories(page, limit, token);
 }
 
 export async function createAdminCategory(
   input: CreateCategoryInput,
 ): Promise<BaseResponse<AdminCategory>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.categories as any)
-    .build();
-  return apiClient.post<CreateCategoryInput, AdminCategory>(url, input, token);
+  if (!token) return unauthorizedResponse<AdminCategory>();
+  return adminCategoriesService.createCategory(input, token);
 }
 
 export async function updateAdminCategory(
@@ -44,20 +43,14 @@ export async function updateAdminCategory(
   input: UpdateCategoryInput,
 ): Promise<BaseResponse<AdminCategory>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.categories as any)
-    .addParam(id)
-    .build();
-  return apiClient.patch<UpdateCategoryInput, AdminCategory>(url, input, token);
+  if (!token) return unauthorizedResponse<AdminCategory>();
+  return adminCategoriesService.updateCategory(id, input, token);
 }
 
 export async function deleteAdminCategory(
   id: string,
 ): Promise<BaseResponse<boolean>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.categories as any)
-    .addParam(id)
-    .build();
-  return apiClient.delete<boolean>(url, token);
+  if (!token) return unauthorizedResponse<boolean>();
+  return adminCategoriesService.deleteCategory(id, token);
 }

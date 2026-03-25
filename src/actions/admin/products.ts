@@ -1,19 +1,23 @@
 "use server";
 
 import { getCookies, tokenType } from "@/features/shared/lib/cookie";
-import { apiClient } from "@/features/shared/api/client";
-import { URLBuilder } from "@/features/shared/lib/urlbuilder";
-import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
 import { BaseResponse, PaginationResponse } from "@/types/global.types";
 import type {
   AdminProduct,
   UpdateAdminProductStatusInput,
 } from "@/features/admin/types/product";
+import { adminProductsService } from "@/features/admin/services/products.service";
 
-async function getToken(): Promise<string> {
-  const token = await getCookies(tokenType.accessToken);
-  if (!token) throw new Error("Unauthorized");
-  return token;
+async function getToken(): Promise<string | null> {
+  return getCookies(tokenType.accessToken);
+}
+
+function unauthorizedResponse<T>(): BaseResponse<T> {
+  return {
+    success: false,
+    data: null as T,
+    message: "Bạn cần đăng nhập để thực hiện thao tác này",
+  };
 }
 
 export async function getAdminProducts(
@@ -21,11 +25,8 @@ export async function getAdminProducts(
   limit = 10,
 ): Promise<BaseResponse<PaginationResponse<AdminProduct>>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.products as any)
-    .addSearchParams({ page, limit })
-    .build();
-  return apiClient.get<PaginationResponse<AdminProduct>>(url, token);
+  if (!token) return unauthorizedResponse<PaginationResponse<AdminProduct>>();
+  return adminProductsService.getProducts(page, limit, token);
 }
 
 export async function updateAdminProductStatus(
@@ -33,25 +34,14 @@ export async function updateAdminProductStatus(
   input: UpdateAdminProductStatusInput,
 ): Promise<BaseResponse<AdminProduct>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.products as any)
-    .addParam(id)
-    .addParam("status")
-    .build();
-  return apiClient.patch<UpdateAdminProductStatusInput, AdminProduct>(
-    url,
-    input,
-    token,
-  );
+  if (!token) return unauthorizedResponse<AdminProduct>();
+  return adminProductsService.updateProductStatus(id, input, token);
 }
 
 export async function deleteAdminProduct(
   id: string,
 ): Promise<BaseResponse<boolean>> {
   const token = await getToken();
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.admin.products as any)
-    .addParam(id)
-    .build();
-  return apiClient.delete<boolean>(url, token);
+  if (!token) return unauthorizedResponse<boolean>();
+  return adminProductsService.deleteProduct(id, token);
 }

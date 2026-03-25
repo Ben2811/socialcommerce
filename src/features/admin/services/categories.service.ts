@@ -8,45 +8,47 @@ interface IAdminCategoriesService {
   getCategories(
     page?: number,
     limit?: number,
+    token?: string,
   ): Promise<BaseResponse<PaginationResponse<AdminCategory>>>;
-  createCategory(input: CreateCategoryInput): Promise<BaseResponse<AdminCategory>>;
-  updateCategory(id: string, input: UpdateCategoryInput): Promise<BaseResponse<AdminCategory>>;
-  deleteCategory(id: string): Promise<BaseResponse<boolean>>;
+  createCategory(input: CreateCategoryInput, token: string): Promise<BaseResponse<AdminCategory>>;
+  updateCategory(id: string, input: UpdateCategoryInput, token: string): Promise<BaseResponse<AdminCategory>>;
+  deleteCategory(id: string, token: string): Promise<BaseResponse<boolean>>;
 }
 
 export class AdminCategoriesService implements IAdminCategoriesService {
   async getCategories(
     page = 1,
     limit = 10,
+    token?: string,
   ): Promise<BaseResponse<PaginationResponse<AdminCategory>>> {
     const url = new URLBuilder()
-      .addPath(API_ENDPOINTS.admin.categories as any)
+      .addPath(API_ENDPOINTS.admin.categories)
       .addSearchParams({ page, limit })
       .build();
-    return apiClient.get<PaginationResponse<AdminCategory>>(url);
+    return apiClient.get<PaginationResponse<AdminCategory>>(url, token);
   }
 
-  async createCategory(input: CreateCategoryInput): Promise<BaseResponse<AdminCategory>> {
+  async createCategory(input: CreateCategoryInput, token: string): Promise<BaseResponse<AdminCategory>> {
     const url = new URLBuilder()
-      .addPath(API_ENDPOINTS.admin.categories as any)
+      .addPath(API_ENDPOINTS.admin.categories)
       .build();
-    return apiClient.post<CreateCategoryInput, AdminCategory>(url, input);
+    return apiClient.post<CreateCategoryInput, AdminCategory>(url, input, token);
   }
 
-  async updateCategory(id: string, input: UpdateCategoryInput): Promise<BaseResponse<AdminCategory>> {
+  async updateCategory(id: string, input: UpdateCategoryInput, token: string): Promise<BaseResponse<AdminCategory>> {
     const url = new URLBuilder()
-      .addPath(API_ENDPOINTS.admin.categories as any)
+      .addPath(API_ENDPOINTS.admin.categories)
       .addParam(id)
       .build();
-    return apiClient.patch<UpdateCategoryInput, AdminCategory>(url, input);
+    return apiClient.patch<UpdateCategoryInput, AdminCategory>(url, input, token);
   }
 
-  async deleteCategory(id: string): Promise<BaseResponse<boolean>> {
+  async deleteCategory(id: string, token: string): Promise<BaseResponse<boolean>> {
     const url = new URLBuilder()
-      .addPath(API_ENDPOINTS.admin.categories as any)
+      .addPath(API_ENDPOINTS.admin.categories)
       .addParam(id)
       .build();
-    return apiClient.delete<boolean>(url);
+    return apiClient.delete<boolean>(url, token);
   }
 }
 
