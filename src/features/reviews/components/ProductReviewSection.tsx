@@ -3,6 +3,9 @@
 import { Star } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   useCreateReview,
   useDeleteReview,
@@ -180,9 +183,9 @@ export function ProductReviewSection({
               className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4"
             >
               <div className="grid gap-3 sm:grid-cols-[120px_1fr] sm:items-center">
-                <label className="text-sm font-medium text-zinc-700">
+                <Label className="text-zinc-700">
                   Đánh giá sao
-                </label>
+                </Label>
                 <div className="flex items-center gap-3">
                   <StarPicker
                     rating={rating}
@@ -196,16 +199,15 @@ export function ProductReviewSection({
               </div>
 
               <div className="mt-3 grid gap-2">
-                <label htmlFor="comment" className="text-sm font-medium text-zinc-700">
+                <Label htmlFor="comment" className="text-zinc-700">
                   Bình luận
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id="comment"
                   rows={4}
                   value={comment}
                   onChange={(event) => setComment(event.target.value)}
                   placeholder="Chia sẻ trải nghiệm thực tế của bạn về sản phẩm"
-                  className="w-full rounded-xl border border-zinc-300 bg-white p-3 text-sm outline-none focus:border-rose-400"
                   disabled={isMutating}
                 />
               </div>
@@ -213,22 +215,23 @@ export function ProductReviewSection({
               {errorMessage ? <p className="mt-2 text-sm text-red-600">{errorMessage}</p> : null}
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <button
+                <Button
                   type="submit"
-                  className="inline-flex items-center justify-center rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600 disabled:opacity-60"
                   disabled={isMutating}
+                  className="rounded-xl bg-rose-500 hover:bg-rose-600"
                 >
                   {ownReview ? "Cập nhật đánh giá" : "Gửi đánh giá"}
-                </button>
+                </Button>
                 {ownReview ? (
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={handleDelete}
-                    className="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-60"
                     disabled={isMutating}
+                    className="rounded-xl"
                   >
                     Xóa đánh giá
-                  </button>
+                  </Button>
                 ) : null}
               </div>
             </form>
@@ -274,13 +277,14 @@ export function ProductReviewSection({
 
               {hasMoreReviews ? (
                 <div className="flex justify-center">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setVisibleCount((prev) => prev + 10)}
-                    className="rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                    className="rounded-xl"
                   >
                     Xem thêm bình luận
-                  </button>
+                  </Button>
                 </div>
               ) : null}
             </>

@@ -1,5 +1,7 @@
 import { Star } from "lucide-react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { ReviewFilter, REVIEW_FILTERS } from "./review.helpers";
 
 type StarRowProps = {
@@ -34,21 +36,23 @@ export function StarPicker({ rating, onChange, disabled }: StarPickerProps) {
         const isActive = starValue <= rating;
 
         return (
-          <button
+          <Button
             key={starValue}
             type="button"
             role="radio"
+            variant="ghost"
+            size="icon-sm"
             aria-checked={rating === starValue}
             aria-label={`${starValue} sao`}
             onClick={() => onChange(starValue)}
             disabled={disabled}
-            className={`transition ${disabled ? "cursor-not-allowed opacity-70" : "hover:scale-110"}`}
+            className="rounded-full"
           >
             <Star
               size={24}
               className={isActive ? "fill-amber-500 text-amber-500" : "text-zinc-300"}
             />
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -64,9 +68,11 @@ export function UserAvatar({ username }: UserAvatarProps) {
   const initials = trimmed.length > 0 ? trimmed.charAt(0).toUpperCase() : "U";
 
   return (
-    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-zinc-900 text-sm font-bold text-white">
-      {initials}
-    </div>
+    <Avatar size="lg" className="bg-zinc-900">
+      <AvatarFallback className="bg-zinc-900 text-sm font-bold text-white">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
   );
 }
 
@@ -83,15 +89,13 @@ export function ReviewFilterBar({ activeFilter, onFilterChange }: ReviewFilterBa
           const isActive = activeFilter === filterKey;
 
           return (
-            <button
+            <Button
               key={String(filterKey)}
               type="button"
+              variant={isActive ? "default" : "secondary"}
+              size="xs"
               onClick={() => onFilterChange(filterKey)}
-              className={`flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                isActive
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
-              }`}
+              className="rounded-full"
             >
               {filterKey === "all" ? (
                 "Tất cả"
@@ -99,12 +103,12 @@ export function ReviewFilterBar({ activeFilter, onFilterChange }: ReviewFilterBa
                 <>
                   <span>{filterKey}</span>
                   <Star
-                    size={14}
-                    className={isActive ? "fill-current text-white" : "fill-amber-500 text-amber-500"}
+                    size={12}
+                    className={isActive ? "fill-current" : "fill-amber-500 text-amber-500"}
                   />
                 </>
               )}
-            </button>
+            </Button>
           );
         })}
       </div>

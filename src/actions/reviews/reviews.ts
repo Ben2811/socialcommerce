@@ -5,10 +5,8 @@ import {
   Review,
   UpdateReviewInput,
 } from "@/features/reviews/types/review.interface";
-import { apiClient } from "@/features/shared/api/client";
-import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
+import { reviewService } from "@/features/reviews/services/reviews.service";
 import { getCookies, tokenType } from "@/features/shared/lib/cookie";
-import { URLBuilder } from "@/features/shared/lib/urlbuilder";
 import { BaseResponse } from "@/types/global.types";
 
 async function getToken(): Promise<string | null> {
@@ -32,8 +30,7 @@ export async function createReviewAction(
     return unauthorizedResponse<Review>();
   }
 
-  const url = new URLBuilder().addPath(API_ENDPOINTS.reviews).build();
-  return apiClient.post<CreateReviewInput, Review>(url, input, token);
+  return reviewService.createReview(input, token);
 }
 
 export async function updateReviewAction(
@@ -46,12 +43,7 @@ export async function updateReviewAction(
     return unauthorizedResponse<Review>();
   }
 
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.reviews)
-    .addParam(reviewId)
-    .build();
-
-  return apiClient.put<UpdateReviewInput, Review>(url, input, token);
+  return reviewService.updateReview(reviewId, input, token);
 }
 
 export async function deleteReviewAction(
@@ -63,10 +55,5 @@ export async function deleteReviewAction(
     return unauthorizedResponse<null>();
   }
 
-  const url = new URLBuilder()
-    .addPath(API_ENDPOINTS.reviews)
-    .addParam(reviewId)
-    .build();
-
-  return apiClient.delete<null>(url, token);
+  return reviewService.deleteReview(reviewId, token);
 }
