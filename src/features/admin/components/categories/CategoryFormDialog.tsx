@@ -12,10 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type {
-  AdminCategory,
-  CreateCategoryInput,
-  UpdateCategoryInput,
+import type { AdminCategory } from "../../types/category";
+import {
+  createCategorySchema,
+  type CreateCategoryInput,
+  type UpdateCategoryInput,
 } from "../../types/category";
 
 interface CategoryFormDialogProps {
@@ -75,11 +76,22 @@ export function CategoryFormDialog({
   }
 
   function validate() {
-    const next: Record<string, string> = {};
-    if (!form.name.trim()) next.name = "Tên danh mục không được để trống";
-    if (!form.slug.trim()) next.slug = "Slug không được để trống";
-    if (!form.description.trim()) next.description = "Mô tả không được để trống";
-    return next;
+    const result = createCategorySchema.safeParse({
+      name: form.name,
+      description: form.description,
+      slug: form.slug,
+      imageUrl: form.imageUrl || undefined,
+      isActive: form.isActive,
+    });
+    if (!result.success) {
+      const next: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = String(issue.path[0]);
+        if (!next[field]) next[field] = issue.message;
+      }
+      return next;
+    }
+    return {};
   }
 
   async function handleSubmit(e: React.FormEvent) {

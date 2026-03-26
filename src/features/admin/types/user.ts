@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type UserRole = "user" | "admin" | "seller";
 
 export interface User {
@@ -16,15 +18,24 @@ export interface UsersResponse {
   };
 }
 
-export interface CreateUserInput {
-  username: string;
-  email: string;
-  password: string;
-}
+export const createUserSchema = z.object({
+  username: z.string().min(1, "Tên người dùng không được để trống"),
+  email: z
+    .string()
+    .min(1, "Email không được để trống")
+    .email("Email không hợp lệ"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+});
 
-export interface UpdateUserInput {
-  username?: string;
-  email?: string;
-  phonenumber?: string;
-  address?: string;
-}
+export const updateUserSchema = z.object({
+  username: z.string().min(1, "Tên người dùng không được để trống"),
+  email: z
+    .string()
+    .min(1, "Email không được để trống")
+    .email("Email không hợp lệ"),
+  phonenumber: z.string().optional(),
+  address: z.string().optional(),
+});
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

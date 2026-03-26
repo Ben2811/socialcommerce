@@ -11,7 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { User, CreateUserInput, UpdateUserInput } from "../../types/user";
+import type { User } from "../../types/user";
+import {
+  createUserSchema,
+  updateUserSchema,
+  type CreateUserInput,
+  type UpdateUserInput,
+} from "../../types/user";
 
 interface UserFormDialogProps {
   open: boolean;
@@ -59,16 +65,17 @@ export function UserFormDialog({
   }, [open, editingUser]);
 
   function validate() {
-    const next: Record<string, string> = {};
-    if (!form.username.trim()) next.username = "Tên người dùng không được để trống";
-    if (!form.email.trim()) next.email = "Email không được để trống";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      next.email = "Email không hợp lệ";
-    if (!isEditing && !form.password.trim())
-      next.password = "Mật khẩu không được để trống";
-    else if (!isEditing && form.password.length < 6)
-      next.password = "Mật khẩu phải có ít nhất 6 ký tự";
-    return next;
+    const schema = isEditing ? updateUserSchema : createUserSchema;
+    const result = schema.safeParse(form);
+    if (!result.success) {
+      const next: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const field = String(issue.path[0]);
+        if (!next[field]) next[field] = issue.message;
+      }
+      return next;
+    }
+    return {};
   }
 
   async function handleSubmit(e: React.FormEvent) {
