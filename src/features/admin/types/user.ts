@@ -1,15 +1,7 @@
 import { z } from "zod";
+import type { UserRole, User } from "@/features/shared/types/user";
 
-export type UserRole = "user" | "admin" | "seller";
-
-export interface User {
-  _id: string;
-  username: string;
-  email: string;
-  phonenumber?: string;
-  address?: string;
-  role: UserRole;
-}
+export type { UserRole, User };
 
 export interface UsersResponse {
   data: {

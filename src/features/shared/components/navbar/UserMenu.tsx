@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth/providers/AuthProvider";
 import { LogOut, ShoppingCart, User, Settings } from "lucide-react";
@@ -32,6 +32,7 @@ export function UserMenu() {
           size="sm"
           className="h-6 w-6 ring-offset-background transition-all group-hover:ring-2 group-hover:ring-ring"
         >
+          <AvatarImage src={user.imageUrls?.[0]} alt={user.username} />
           <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
             {user.username?.[0]?.toUpperCase() ?? "U"}
           </AvatarFallback>
