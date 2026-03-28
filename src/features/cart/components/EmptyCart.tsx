@@ -16,7 +16,7 @@ export function EmptyCart() {
       </p>
       <Link
         href="/"
-        className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 px-8 rounded-full font-semibold hover:from-pink-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
+        className="inline-flex items-center gap-2 bg-white text-gray-900 border border-gray-200 py-3 px-8 rounded-full font-semibold hover:bg-gray-50 transition-all shadow-sm hover:shadow-md"
       >
         Tiếp tục mua sắm
       </Link>

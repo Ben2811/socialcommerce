@@ -6,7 +6,9 @@ import { categoriesService } from "@/features/categories";
 import { CategoryButton } from "@/features/categories/componets/CategoryButton";
 
 export async function Navbar() {
-  const categoryResponse = await categoriesService.getCategories();
+  // const categoryResponse = await categoriesService.getCategories();
+  // TODO: remove mock when API is ready
+  const categoryResponse = { data: [] };
   
   const categories = Array.isArray(categoryResponse.data) ? categoryResponse.data : [];
   return (
