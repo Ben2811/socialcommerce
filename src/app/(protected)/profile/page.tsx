@@ -1,5 +1,5 @@
-import { ProfileCard } from "@/features/profile";
+import { ProfileLayout } from "@/features/profile/components/ProfileLayout";
 
 export default function ProfilePage() {
-  return <ProfileCard />;
+  return <ProfileLayout />;
 }
