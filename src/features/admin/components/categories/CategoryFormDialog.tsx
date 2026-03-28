@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,14 +10,27 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type { AdminCategory } from "../../types/category";
 import {
-  createCategorySchema,
-  type CreateCategoryInput,
-  type UpdateCategoryInput,
-} from "../../types/category";
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import type { AdminCategory } from "../../types/category";
+import { categoryFormSchema } from "../../types/category";
+import type { CreateCategoryInput, UpdateCategoryInput } from "../../types/category";
+
+function generateSlug(name: string) {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
 
 interface CategoryFormDialogProps {
   open: boolean;
@@ -28,198 +41,181 @@ interface CategoryFormDialogProps {
   isLoading?: boolean;
 }
 
-export function CategoryFormDialog({
-  open,
+export function CategoryFormDialog({ open, ...props }: CategoryFormDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={props.onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        {open && (
+          <CategoryFormInner
+            key={props.editingCategory?._id ?? "new"}
+            {...props}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CategoryFormInner({
   onOpenChange,
   editingCategory,
   onSubmitCreate,
   onSubmitUpdate,
   isLoading,
-}: CategoryFormDialogProps) {
+}: Omit<CategoryFormDialogProps, "open">) {
   const isEditing = !!editingCategory;
 
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-    slug: "",
-    imageUrl: "",
-    isActive: true,
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (open) {
-      if (editingCategory) {
-        setForm({
-          name: editingCategory.name,
-          description: editingCategory.description,
-          slug: editingCategory.slug,
-          imageUrl: editingCategory.imageUrl ?? "",
-          isActive: editingCategory.isActive !== false,
-        });
+  const form = useForm({
+    defaultValues: {
+      name: editingCategory?.name ?? "",
+      description: editingCategory?.description ?? "",
+      slug: editingCategory?.slug ?? "",
+      imageUrl: editingCategory?.imageUrl ?? "",
+      isActive: editingCategory?.isActive ?? true,
+    },
+    validators: { onChange: categoryFormSchema },
+    onSubmit: async ({ value }) => {
+      const payload = {
+        name: value.name,
+        description: value.description,
+        slug: value.slug,
+        imageUrl: value.imageUrl || undefined,
+        isActive: value.isActive,
+      };
+      if (isEditing) {
+        await onSubmitUpdate(editingCategory._id, payload);
       } else {
-        setForm({ name: "", description: "", slug: "", imageUrl: "", isActive: true });
+        await onSubmitCreate(payload);
       }
-      setErrors({});
-    }
-  }, [open, editingCategory]);
-
-  function generateSlug(name: string) {
-    return name
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/đ/g, "d")
-      .replace(/[^a-z0-9\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, "-");
-  }
-
-  function validate() {
-    const result = createCategorySchema.safeParse({
-      name: form.name,
-      description: form.description,
-      slug: form.slug,
-      imageUrl: form.imageUrl || undefined,
-      isActive: form.isActive,
-    });
-    if (!result.success) {
-      const next: Record<string, string> = {};
-      for (const issue of result.error.issues) {
-        const field = String(issue.path[0]);
-        if (!next[field]) next[field] = issue.message;
-      }
-      return next;
-    }
-    return {};
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const validation = validate();
-    if (Object.keys(validation).length > 0) {
-      setErrors(validation);
-      return;
-    }
-
-    const payload = {
-      name: form.name,
-      description: form.description,
-      slug: form.slug,
-      imageUrl: form.imageUrl || undefined,
-      isActive: form.isActive,
-    };
-
-    if (isEditing) {
-      await onSubmitUpdate(editingCategory._id, payload);
-    } else {
-      await onSubmitCreate(payload);
-    }
-  }
-
-  function onChange(field: keyof typeof form, value: string | boolean) {
-    setForm((prev) => {
-      const next = { ...prev, [field]: value };
-      if (field === "name" && typeof value === "string" && !isEditing) {
-        next.slug = generateSlug(value);
-      }
-      return next;
-    });
-    if (errors[field as string]) setErrors((prev) => ({ ...prev, [field]: "" }));
-  }
+    },
+  });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {isEditing ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
+        </DialogTitle>
+      </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Tên danh mục</Label>
-            <Input
-              id="name"
-              value={form.name}
-              onChange={(e) => onChange("name", e.target.value)}
-              placeholder="Nhập tên danh mục"
-              disabled={isLoading}
-            />
-            {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="slug">Slug</Label>
-            <Input
-              id="slug"
-              value={form.slug}
-              onChange={(e) => onChange("slug", e.target.value)}
-              placeholder="ten-danh-muc"
-              disabled={isLoading}
-            />
-            {errors.slug && <p className="text-xs text-red-500">{errors.slug}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="description">Mô tả</Label>
-            <Input
-              id="description"
-              value={form.description}
-              onChange={(e) => onChange("description", e.target.value)}
-              placeholder="Nhập mô tả danh mục"
-              disabled={isLoading}
-            />
-            {errors.description && (
-              <p className="text-xs text-red-500">{errors.description}</p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        <FieldGroup className="grid gap-4">
+          <form.Field name="name">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>Tên danh mục</FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value);
+                    if (!isEditing) {
+                      form.setFieldValue("slug", generateSlug(e.target.value));
+                    }
+                  }}
+                  placeholder="Nhập tên danh mục"
+                  disabled={isLoading}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
-          </div>
+          </form.Field>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="imageUrl">URL hình ảnh (tùy chọn)</Label>
-            <Input
-              id="imageUrl"
-              value={form.imageUrl}
-              onChange={(e) => onChange("imageUrl", e.target.value)}
-              placeholder="https://..."
-              disabled={isLoading}
-            />
-          </div>
+          <form.Field name="slug">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>Slug</FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="ten-danh-muc"
+                  disabled={isLoading}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )}
+          </form.Field>
 
-          <div className="flex items-center gap-3">
-            <Switch
-              id="isActive"
-              checked={form.isActive}
-              onCheckedChange={(checked) => onChange("isActive", checked)}
-              disabled={isLoading}
-            />
-            <Label htmlFor="isActive">Hoạt động</Label>
-          </div>
+          <form.Field name="description">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>Mô tả</FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Nhập mô tả danh mục"
+                  disabled={isLoading}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )}
+          </form.Field>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-[#f6a313] text-white hover:bg-[#eb9800]"
-            >
-              {isLoading
-                ? "Đang xử lý..."
-                : isEditing
-                  ? "Lưu thay đổi"
-                  : "Thêm danh mục"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          <form.Field name="imageUrl">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>
+                  URL hình ảnh (tùy chọn)
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="https://..."
+                  disabled={isLoading}
+                />
+              </Field>
+            )}
+          </form.Field>
+
+          <form.Field name="isActive">
+            {(field) => (
+              <Field>
+                <div className="flex items-center gap-3">
+                  <Switch
+                    id={field.name}
+                    checked={field.state.value}
+                    onCheckedChange={field.handleChange}
+                    disabled={isLoading}
+                  />
+                  <FieldLabel htmlFor={field.name}>Hoạt động</FieldLabel>
+                </div>
+              </Field>
+            )}
+          </form.Field>
+        </FieldGroup>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
+            Hủy
+          </Button>
+          <Button type="submit" variant="orange" disabled={isLoading}>
+            {isLoading
+              ? "Đang xử lý..."
+              : isEditing
+                ? "Lưu thay đổi"
+                : "Thêm danh mục"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </>
   );
 }

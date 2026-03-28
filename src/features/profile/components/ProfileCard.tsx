@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -10,10 +11,8 @@ import { uploadImage } from "@/actions/profile/profile";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileFormFields } from "./ProfileFormFields";
 import { ProfileImages } from "./ProfileImages";
-import { profileSchema } from "@/features/profile/types/user.interface";
-import type { UpdateProfileInput } from "@/features/profile/types/user.interface";
-
-type ProfileFormErrors = Partial<Record<keyof UpdateProfileInput, string>>;
+import { profileFormSchema } from "@/features/profile/types/user.interface";
+import type { UpdateProfileInput, ProfileFormData } from "@/features/profile/types/user.interface";
 
 export function ProfileCard() {
   const { data: user, isLoading } = useCurrentUser();
@@ -21,56 +20,47 @@ export function ProfileCard() {
   const { setUser } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<UpdateProfileInput>({});
-  const [errors, setErrors] = useState<ProfileFormErrors>({});
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+
+  const form = useForm({
+    defaultValues: {
+      username: "",
+      email: "",
+      phonenumber: "",
+      address: "",
+    } satisfies ProfileFormData,
+    validators: { onChange: profileFormSchema },
+    onSubmit: async ({ value }) => {
+      const payload: UpdateProfileInput = {
+        ...value,
+        phonenumber: value.phonenumber || undefined,
+        address: value.address || undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : [],
+      };
+      const updated = await updateProfile.mutateAsync(payload);
+      if (updated) setUser(updated);
+      setIsEditing(false);
+    },
+  });
 
   function handleEdit() {
     if (!user) return;
-    setForm({
-      username: user.username,
-      email: user.email,
-      phonenumber: user.phonenumber ?? "",
-      address: user.address ?? "",
-      imageUrls: user.imageUrls ?? [],
-    });
+    form.setFieldValue("username", user.username ?? "");
+    form.setFieldValue("email", user.email ?? "");
+    form.setFieldValue("phonenumber", user.phonenumber ?? "");
+    form.setFieldValue("address", user.address ?? "");
+    setImageUrls(user.imageUrls ?? []);
     setIsEditing(true);
   }
 
   function handleCancel() {
+    form.reset();
     setIsEditing(false);
-    setForm({});
-    setErrors({});
   }
 
-  async function handleSave() {
-    const result = profileSchema.safeParse({
-      username: form.username,
-      email: form.email,
-      phonenumber: form.phonenumber ?? "",
-      address: form.address ?? "",
-    });
-
-    if (!result.success) {
-      const fieldErrors: ProfileFormErrors = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as keyof ProfileFormErrors;
-        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
-      }
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setErrors({});
-    const payload: UpdateProfileInput = {
-      ...form,
-      phonenumber: form.phonenumber || undefined,
-      address: form.address || undefined,
-      imageUrls: (form.imageUrls ?? []).length > 0 ? form.imageUrls : [],
-    };
-    const updated = await updateProfile.mutateAsync(payload);
-    if (updated) setUser(updated);
-    setIsEditing(false);
+  function handleSave() {
+    void form.handleSubmit();
   }
 
   async function handleFileUpload(file: File) {
@@ -86,25 +76,19 @@ export function ProfileCard() {
       return;
     }
 
-    setForm((prev) => ({
-      ...prev,
-      imageUrls: [...(prev.imageUrls ?? []), res.data.url],
-    }));
+    setImageUrls((prev) => [...prev, res.data.url]);
   }
 
   function removeImage(index: number) {
-    setForm((prev) => ({
-      ...prev,
-      imageUrls: (prev.imageUrls ?? []).filter((_, i) => i !== index),
-    }));
+    setImageUrls((prev) => prev.filter((_, i) => i !== index));
   }
 
   function setAsAvatar(index: number) {
     if (index === 0) return;
-    setForm((prev) => {
-      const imgs = [...(prev.imageUrls ?? [])];
+    setImageUrls((prev) => {
+      const imgs = [...prev];
       const [picked] = imgs.splice(index, 1);
-      return { ...prev, imageUrls: [picked, ...imgs] };
+      return [picked, ...imgs];
     });
   }
 
@@ -143,8 +127,16 @@ export function ProfileCard() {
     );
   }
 
-  const avatarSrc = (isEditing ? form.imageUrls?.[0] : user.imageUrls?.[0]) ?? "";
-  const displayImages = isEditing ? (form.imageUrls ?? []) : (user.imageUrls ?? []);
+  const fieldMeta = form.state.fieldMeta;
+  const derivedErrors: Record<string, string> = {
+    username: (fieldMeta.username?.errors?.[0] as string | undefined) || "",
+    email: (fieldMeta.email?.errors?.[0] as string | undefined) || "",
+    phonenumber: (fieldMeta.phonenumber?.errors?.[0] as string | undefined) || "",
+    address: (fieldMeta.address?.errors?.[0] as string | undefined) || "",
+  };
+
+  const avatarSrc = (isEditing ? imageUrls[0] : user.imageUrls?.[0]) ?? "";
+  const displayImages = isEditing ? imageUrls : (user.imageUrls ?? []);
 
   return (
     <div className="min-h-screen bg-muted/30 flex items-start justify-center py-12 px-4">
@@ -162,10 +154,12 @@ export function ProfileCard() {
 
         <ProfileFormFields
           user={user}
-          form={form}
-          errors={errors}
+          form={form.state.values as UpdateProfileInput}
+          errors={derivedErrors}
           isEditing={isEditing}
-          onFieldChange={(field, value) => setForm((p) => ({ ...p, [field]: value }))}
+          onFieldChange={(field, value) =>
+            form.setFieldValue(field as keyof ProfileFormData, value as string)
+          }
         />
 
         <ProfileImages

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useForm } from "@tanstack/react-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,14 +10,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import type { User } from "../../types/user";
 import {
-  createUserSchema,
-  updateUserSchema,
-  type CreateUserInput,
-  type UpdateUserInput,
-} from "../../types/user";
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import type { User } from "../../types/user";
+import { createUserFormSchema, updateUserFormSchema } from "../../types/user";
+import type { CreateUserInput, UpdateUserInput } from "../../types/user";
 
 interface UserFormDialogProps {
   open: boolean;
@@ -28,190 +29,188 @@ interface UserFormDialogProps {
   isLoading?: boolean;
 }
 
-export function UserFormDialog({
-  open,
+export function UserFormDialog({ open, ...props }: UserFormDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={props.onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        {open && (
+          <UserFormInner
+            key={props.editingUser?._id ?? "new"}
+            {...props}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UserFormInner({
   onOpenChange,
   editingUser,
   onSubmitCreate,
   onSubmitUpdate,
   isLoading,
-}: UserFormDialogProps) {
+}: Omit<UserFormDialogProps, "open">) {
   const isEditing = !!editingUser;
 
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    password: "",
-    phonenumber: "",
-    address: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    if (open) {
-      if (editingUser) {
-        setForm({
-          username: editingUser.username,
-          email: editingUser.email,
-          password: "",
-          phonenumber: editingUser.phonenumber ?? "",
-          address: editingUser.address ?? "",
+  const form = useForm({
+    defaultValues: {
+      username: editingUser?.username ?? "",
+      email: editingUser?.email ?? "",
+      password: "",
+      phonenumber: editingUser?.phonenumber ?? "",
+      address: editingUser?.address ?? "",
+    },
+    validators: {
+      onChange: isEditing ? updateUserFormSchema : createUserFormSchema,
+    },
+    onSubmit: async ({ value }) => {
+      if (isEditing) {
+        await onSubmitUpdate(editingUser._id, {
+          username: value.username,
+          email: value.email,
+          phonenumber: value.phonenumber || undefined,
+          address: value.address || undefined,
         });
       } else {
-        setForm({ username: "", email: "", password: "", phonenumber: "", address: "" });
+        await onSubmitCreate({
+          username: value.username,
+          email: value.email,
+          password: value.password,
+        });
       }
-      setErrors({});
-    }
-  }, [open, editingUser]);
-
-  function validate() {
-    const schema = isEditing ? updateUserSchema : createUserSchema;
-    const result = schema.safeParse(form);
-    if (!result.success) {
-      const next: Record<string, string> = {};
-      for (const issue of result.error.issues) {
-        const field = String(issue.path[0]);
-        if (!next[field]) next[field] = issue.message;
-      }
-      return next;
-    }
-    return {};
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const validation = validate();
-    if (Object.keys(validation).length > 0) {
-      setErrors(validation);
-      return;
-    }
-
-    if (isEditing) {
-      await onSubmitUpdate(editingUser._id, {
-        username: form.username,
-        email: form.email,
-        phonenumber: form.phonenumber || undefined,
-        address: form.address || undefined,
-      });
-    } else {
-      await onSubmitCreate({
-        username: form.username,
-        email: form.email,
-        password: form.password,
-      });
-    }
-  }
-
-  function onChange(field: keyof typeof form, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-  }
+    },
+  });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {isEditing ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
+        </DialogTitle>
+      </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="username">Tên người dùng</Label>
-            <Input
-              id="username"
-              value={form.username}
-              onChange={(e) => onChange("username", e.target.value)}
-              placeholder="Nhập tên người dùng"
-              disabled={isLoading}
-            />
-            {errors.username && (
-              <p className="text-xs text-red-500">{errors.username}</p>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        className="space-y-4"
+      >
+        <FieldGroup className="grid gap-4">
+          <form.Field name="username">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>Tên người dùng</FieldLabel>
+                <Input
+                  id={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Nhập tên người dùng"
+                  disabled={isLoading}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
-          </div>
+          </form.Field>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={form.email}
-              onChange={(e) => onChange("email", e.target.value)}
-              placeholder="Nhập email"
-              disabled={isLoading}
-            />
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email}</p>
+          <form.Field name="email">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="email"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Nhập email"
+                  disabled={isLoading}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
             )}
-          </div>
+          </form.Field>
 
           {!isEditing && (
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Mật khẩu</Label>
-              <Input
-                id="password"
-                type="password"
-                value={form.password}
-                onChange={(e) => onChange("password", e.target.value)}
-                placeholder="Nhập mật khẩu"
-                disabled={isLoading}
-              />
-              {errors.password && (
-                <p className="text-xs text-red-500">{errors.password}</p>
+            <form.Field name="password">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={field.name}>Mật khẩu</FieldLabel>
+                  <Input
+                    id={field.name}
+                    type="password"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Nhập mật khẩu"
+                    disabled={isLoading}
+                  />
+                  <FieldError errors={field.state.meta.errors} />
+                </Field>
               )}
-            </div>
+            </form.Field>
           )}
 
           {isEditing && (
             <>
-              <div className="space-y-1.5">
-                <Label htmlFor="phonenumber">Số điện thoại</Label>
-                <Input
-                  id="phonenumber"
-                  value={form.phonenumber}
-                  onChange={(e) => onChange("phonenumber", e.target.value)}
-                  placeholder="Nhập số điện thoại"
-                  disabled={isLoading}
-                />
-              </div>
+              <form.Field name="phonenumber">
+                {(field) => (
+                  <Field>
+                    <FieldLabel htmlFor={field.name}>Số điện thoại</FieldLabel>
+                    <Input
+                      id={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Nhập số điện thoại"
+                      disabled={isLoading}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )}
+              </form.Field>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="address">Địa chỉ</Label>
-                <Input
-                  id="address"
-                  value={form.address}
-                  onChange={(e) => onChange("address", e.target.value)}
-                  placeholder="Nhập địa chỉ"
-                  disabled={isLoading}
-                />
-              </div>
+              <form.Field name="address">
+                {(field) => (
+                  <Field>
+                    <FieldLabel htmlFor={field.name}>Địa chỉ</FieldLabel>
+                    <Input
+                      id={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Nhập địa chỉ"
+                      disabled={isLoading}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )}
+              </form.Field>
             </>
           )}
+        </FieldGroup>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
-              Hủy
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-[#f6a313] text-white hover:bg-[#eb9800]"
-            >
-              {isLoading
-                ? "Đang xử lý..."
-                : isEditing
-                  ? "Lưu thay đổi"
-                  : "Thêm người dùng"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading}
+          >
+            Hủy
+          </Button>
+          <Button type="submit" variant="orange" disabled={isLoading}>
+            {isLoading
+              ? "Đang xử lý..."
+              : isEditing
+                ? "Lưu thay đổi"
+                : "Thêm người dùng"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </>
   );
 }
