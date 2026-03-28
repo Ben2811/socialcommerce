@@ -23,18 +23,6 @@ export function CartView({ initialItems }: CartViewProps) {
   const allSelected =
     allItemIds.length > 0 && allItemIds.every((id) => selectedIds.has(id));
 
-  const handleToggleSelectItem = useCallback((id: number) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }, []);
-
   const handleToggleSelectShop = useCallback(
     (_shopId: number, allIds: number[]) => {
       setSelectedIds((prev) => {
@@ -102,28 +90,26 @@ export function CartView({ initialItems }: CartViewProps) {
           <EmptyCart />
         ) : (
           <div className="flex flex-col gap-3">
-            {/* Checkout bar */}
-            <CartCheckoutBar
-              selectedCount={selectedCount}
-              totalAmount={totalAmount}
-              totalItems={items.length}
-              allSelected={allSelected}
-              allItemIds={allItemIds}
-              onToggleSelectAll={handleToggleSelectAll}
-              onCheckout={handleCheckout}
-            />
-
             {/* Cart table */}
             <div className="border border-border rounded-sm bg-card overflow-hidden">
               <CartTable
                 groups={groups}
                 selectedIds={selectedIds}
-                onToggleSelectItem={handleToggleSelectItem}
+                allSelected={allSelected}
+                allItemIds={allItemIds}
+                onToggleSelectAll={handleToggleSelectAll}
                 onToggleSelectShop={handleToggleSelectShop}
                 onUpdateQuantity={handleUpdateQuantity}
                 onRemove={handleRemove}
               />
             </div>
+
+            {/* Checkout bar - bottom */}
+            <CartCheckoutBar
+              selectedCount={selectedCount}
+              totalAmount={totalAmount}
+              onCheckout={handleCheckout}
+            />
           </div>
         )}
       </div>

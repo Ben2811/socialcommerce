@@ -17,44 +17,47 @@ import {
 interface CartTableProps {
   groups: CartGroupByShop[];
   selectedIds: Set<number>;
-  onToggleSelectItem: (id: number) => void;
+  allSelected: boolean;
+  allItemIds: number[];
+  onToggleSelectAll: (allIds: number[]) => void;
   onToggleSelectShop: (shopId: number, allIds: number[]) => void;
   onUpdateQuantity: (id: number, delta: number) => void;
   onRemove: (id: number) => void;
 }
 
-const COLUMN_HEADERS = [
-  { key: "checkbox", label: "" },
-  { key: "image", label: "Hình ảnh" },
-  { key: "name", label: "Tên sản phẩm" },
-  { key: "category", label: "Danh mục" },
-  { key: "price", label: "Đơn giá" },
-  { key: "quantity", label: "Số lượng" },
-  { key: "total", label: "Thành tiền" },
-  { key: "actions", label: "" },
-] as const;
 
 export function CartTable({
   groups,
   selectedIds,
-  onToggleSelectItem,
+  allSelected,
+  allItemIds,
+  onToggleSelectAll,
   onToggleSelectShop,
   onUpdateQuantity,
   onRemove,
 }: CartTableProps) {
   return (
     <Table>
-      {/* Header */}
       <TableHeader>
         <TableRow className="border-b border-border hover:bg-transparent">
-          {COLUMN_HEADERS.map((col) => (
-            <TableHead
-              key={col.key}
-              className="text-muted-foreground font-medium text-sm py-3 bg-background"
-            >
-              {col.label}
-            </TableHead>
-          ))}
+          {/* Checkbox + Hình ảnh header */}
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background pl-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="select-all-header"
+                checked={allSelected}
+                onCheckedChange={() => onToggleSelectAll(allItemIds)}
+                aria-label="Chọn tất cả sản phẩm"
+              />
+              <span>Hình ảnh</span>
+            </div>
+          </TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Tên sản phẩm</TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Danh mục</TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Đơn giá</TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Số lượng</TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Thành tiền</TableHead>
+          <TableHead className="bg-background" />
         </TableRow>
       </TableHeader>
 
@@ -91,8 +94,6 @@ export function CartTable({
                 <CartItemRow
                   key={item.id}
                   item={item}
-                  isSelected={selectedIds.has(item.id)}
-                  onToggleSelect={onToggleSelectItem}
                   onUpdateQuantity={onUpdateQuantity}
                   onRemove={onRemove}
                 />
