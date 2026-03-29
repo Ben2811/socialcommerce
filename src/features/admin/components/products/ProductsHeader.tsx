@@ -1,13 +1,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { AdminProduct } from "../../types/product";
-
 interface ProductsHeaderProps {
-  products: AdminProduct[];
+  totalItems: number;
 }
 
-export function ProductsHeader({ products }: ProductsHeaderProps) {
+export function ProductsHeader({ totalItems }: ProductsHeaderProps) {
   return (
     <section className="space-y-4">
       <div className="space-y-2">
@@ -26,7 +24,7 @@ export function ProductsHeader({ products }: ProductsHeaderProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">{products.length}</div>
+          <div className="text-3xl font-bold">{totalItems.toLocaleString("vi-VN")}</div>
           <p className="text-xs text-muted-foreground mt-1">Trong hệ thống</p>
         </CardContent>
       </Card>

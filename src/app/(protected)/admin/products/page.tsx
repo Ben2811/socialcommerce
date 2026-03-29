@@ -26,6 +26,7 @@ export default function ProductsPage() {
   const { data: productsData, isLoading, error } = useAdminProducts(page, LIMIT);
   const products = productsData?.items ?? [];
   const totalPages = productsData?.totalPages ?? 1;
+  const totalItems = productsData?.totalItems ?? 0;
 
   const updateStatusMutation = useUpdateAdminProductStatus();
   const deleteProductMutation = useDeleteAdminProduct();
@@ -53,7 +54,7 @@ export default function ProductsPage() {
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,rgba(255,248,237,0.88)_0%,rgba(255,255,255,1)_22%,rgba(247,248,252,1)_100%)] text-foreground">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <ProductsHeader products={products} />
+        <ProductsHeader totalItems={totalItems} />
 
         <ProductsTable
           products={products}

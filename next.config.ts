@@ -17,11 +17,17 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
-        protocol: "https", 
-        hostname:"via.placeholder.com",
+        protocol: "https",
+        hostname: "via.placeholder.com",
         port: "",
         pathname: "/**",
-      }
+      },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
