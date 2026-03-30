@@ -1,12 +1,19 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth/providers/AuthProvider";
 import { LogOut, ShoppingCart, User, Settings } from "lucide-react";
 import Link from "next/link";
 import type { UserRole } from "@/features/admin/types/user";
-
 
 export function UserMenu() {
   const { user, logout } = useAuth();
@@ -27,7 +34,7 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 outline-none hover:text-foreground transition-colors group">
+      <DropdownMenuTrigger className="flex items-center gap-2 appearance-none bg-transparent border-0 p-0 cursor-pointer outline-none hover:text-foreground transition-colors group">
         <Avatar
           size="sm"
           className="h-6 w-6 ring-offset-background transition-all group-hover:ring-2 group-hover:ring-ring"
@@ -41,7 +48,7 @@ export function UserMenu() {
           {user.username}
         </span>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="end" sideOffset={8}>
         <DropdownMenuGroup>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
