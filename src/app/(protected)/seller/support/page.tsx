@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Send, Image as ImageIcon, Shield, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -35,11 +36,15 @@ const MOCK_MESSAGES = [
 
 export default function SellerSupportPage() {
   const [activeConversation, setActiveConversation] = useState<string | null>(null);
-  const [messages, setMessages] = useState(MOCK_MESSAGES);
+  const [messagesByConv, setMessagesByConv] = useState<Record<string, typeof MOCK_MESSAGES>>({
+    c1: MOCK_MESSAGES,
+  });
   const [inputValue, setInputValue] = useState("");
 
+  const currentMessages = activeConversation ? (messagesByConv[activeConversation] || []) : [];
+
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || !activeConversation) return;
 
     const newMessage = {
       id: Date.now(),
@@ -48,11 +53,14 @@ export default function SellerSupportPage() {
       timestamp: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase(),
     };
 
-    setMessages([...messages, newMessage]);
+    setMessagesByConv(prev => ({
+      ...prev,
+      [activeConversation]: [...(prev[activeConversation] || []), newMessage]
+    }));
     setInputValue("");
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleSendMessage();
     }
@@ -107,11 +115,12 @@ export default function SellerSupportPage() {
                   size="icon"
                   className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full h-8 w-8"
                   onClick={() => setActiveConversation(null)}
+                  aria-label="Quay lại danh sách"
                 >
                   <ArrowLeft className="size-5" />
                 </Button>
                 <Avatar className="size-8 border border-border/50">
-                  <AvatarImage src={activeChatUser.avatar} />
+                  <AvatarImage src={activeChatUser.avatar} alt={activeChatUser.name} />
                   <AvatarFallback className="text-xs bg-muted text-muted-foreground">
                     {activeChatUser.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>
@@ -121,7 +130,7 @@ export default function SellerSupportPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-muted/20">
-              {messages.map((msg) => {
+              {currentMessages.map((msg) => {
                 const isSeller = msg.sender === "seller";
                 return (
                   <div
@@ -158,7 +167,7 @@ export default function SellerSupportPage() {
                     onKeyDown={handleKeyDown}
                     className="w-full pl-4 pr-10 h-12 rounded-xl bg-transparent border-input focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all text-[15px] shadow-none"
                   />
-                  <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground hover:bg-transparent h-8 w-8 transition p-1">
+                  <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground hover:bg-transparent h-8 w-8 transition p-1" aria-label="Đính kèm hình ảnh">
                     <ImageIcon className="size-5" />
                   </Button>
                 </div>

@@ -39,7 +39,7 @@ export function SellerSidebar() {
     <Sidebar collapsible="none" className="sticky top-0 flex h-dvh flex-col border-r border-border bg-sidebar text-sidebar-foreground w-[240px]">
       <SidebarHeader className="gap-0 p-0 border-b border-border">
         <div className="p-4 flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500" onClick={() => router.back()} aria-label="Quay lại">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <span className="font-semibold text-[15px]">Trang seller</span>
