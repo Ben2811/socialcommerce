@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useStore } from "@tanstack/react-store";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -43,6 +44,9 @@ export function ProfileCard() {
       setIsEditing(false);
     },
   });
+
+  const formValues = useStore(form.store, (state) => state.values);
+  const fieldMeta = useStore(form.store, (state) => state.fieldMeta);
 
   function handleEdit() {
     if (!user) return;
@@ -127,7 +131,6 @@ export function ProfileCard() {
     );
   }
 
-  const fieldMeta = form.state.fieldMeta;
   const derivedErrors: Record<string, string> = {
     username: (fieldMeta.username?.errors?.[0] as string | undefined) || "",
     email: (fieldMeta.email?.errors?.[0] as string | undefined) || "",
@@ -154,7 +157,7 @@ export function ProfileCard() {
 
         <ProfileFormFields
           user={user}
-          form={form.state.values as UpdateProfileInput}
+          form={formValues as UpdateProfileInput}
           errors={derivedErrors}
           isEditing={isEditing}
           onFieldChange={(field, value) =>
