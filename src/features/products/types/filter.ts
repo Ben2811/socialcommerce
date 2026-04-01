@@ -11,4 +11,5 @@ export interface ProductFilter {
   limit?: number;
   sortBy?: string;
   sortOrder?: SortOrder;
+  ownerId?: string;
 }

@@ -8,6 +8,11 @@ import { useProducts } from "../hooks/useProduct";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { cn } from "@/features/shared/utils/cn";
 import type { Product } from "../types/product.interface";
+import type { ProductFilter } from "../types";
+
+export interface ProductListProps {
+  filter?: ProductFilter;
+}
 
 function getItemsPerRow(width: number) {
   if (width >= 1280) return 4;
@@ -22,12 +27,12 @@ function getEstimatedRowHeight(itemsPerRow: number) {
   return 420;
 }
 
-export function ProductList() {
+export function ProductList({ filter }: ProductListProps = {}) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [itemsPerRow, setItemsPerRow] = useState(4);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useProducts();
+    useProducts(filter);
 
   const isIntersecting = useIntersectionObserver(sentinelRef, {
     enabled: !!hasNextPage,
@@ -132,7 +137,7 @@ export function ProductList() {
                   itemsPerRow === 2 && "grid-cols-2",
                   itemsPerRow === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
                   itemsPerRow === 4 &&
-                    "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+                  "grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
                 )}
               >
                 {row.map((product) => (
