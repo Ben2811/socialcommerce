@@ -1,35 +1,19 @@
-import { ProductList } from "@/features/products";
+import { ProductCard } from "@/features/products";
 import { productService } from "@/features/products/services/products.service";
-import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
-import { URLBuilder } from "@/features/shared/lib/urlbuilder";
-import { apiClient } from "@/features/shared/api/client";
-import { User, Store, Package, MapPin, Mail, Phone } from "lucide-react";
+import { userService } from "@/features/profile/services/users.service";
+import { User as UserIcon, Store, Package, MapPin, Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { userRole, type UserRole } from "@/features/shared/types/user";
-
-interface SellerProfile {
-  _id: string;
-  username: string;
-  email: string;
-  role: UserRole;
-  address?: string;
-  phonenumber?: string;
-  imageUrls?: string[];
-}
+import { userRole, type User } from "@/features/shared/types/user";
+import type { Product } from "@/features/products/types";
 
 export default async function SellerShopPage(
   params: PageProps<"/shop/[sellerId]">,
 ) {
   const { sellerId } = await params.params;
 
-  const userUrl = new URLBuilder()
-    .addPath(API_ENDPOINTS.users)
-    .addParam(sellerId)
-    .build();
-
   const [userResponse, productsResponse] = await Promise.all([
-    apiClient.get<SellerProfile>(userUrl),
+    userService.getUserById(sellerId),
     productService.getProducts({ ownerId: sellerId }).catch(() => null),
   ]);
 
@@ -46,6 +30,7 @@ export default async function SellerShopPage(
   const initialProductsPage = productsResponse?.success
     ? productsResponse
     : undefined;
+  const products: Product[] = initialProductsPage?.data?.items ?? [];
   const totalProducts = initialProductsPage?.data?.totalItems;
 
   return (
@@ -80,7 +65,7 @@ export default async function SellerShopPage(
                 />
               ) : (
                 <div className="w-full h-full bg-zinc-100 flex items-center justify-center text-zinc-400">
-                  <User className="w-12 h-12" />
+                  <UserIcon className="w-12 h-12" />
                 </div>
               )}
             </div>
@@ -119,8 +104,7 @@ export default async function SellerShopPage(
                     <Mail className="w-4 h-4" />
                     <span>{seller.email}</span>
                   </div>
-                )
-                }
+                )}
               </div>
             </div>
 
@@ -138,10 +122,20 @@ export default async function SellerShopPage(
           <h2 className="text-xl font-bold text-zinc-900">Sản phẩm</h2>
         </div>
 
-        <ProductList
-          filter={{ ownerId: sellerId }}
-          initialProductsPage={initialProductsPage}
-        />
+        {products.length > 0 ? (
+          <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard
+                key={product._id || `${product.ownerId}-${product.name}`}
+                product={product}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-white text-zinc-500">
+            Chưa có sản phẩm
+          </div>
+        )}
       </div>
     </main>
   );

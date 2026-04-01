@@ -5,11 +5,21 @@ import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
 import { BaseResponse } from "@/types/global.types";
 
 export interface IUserService {
+  getUserById(id: string): Promise<BaseResponse<User>>;
   getCurrentUser(accessToken: string): Promise<BaseResponse<User>>;
   updateCurrentUser(input: UpdateProfileInput, accessToken: string): Promise<BaseResponse<User>>;
 }
 
 export class UserService implements IUserService {
+  async getUserById(id: string): Promise<BaseResponse<User>> {
+    const url = new URLBuilder()
+      .addPath(API_ENDPOINTS.users)
+      .addPath(id)
+      .build();
+
+    return await apiClient.get<User>(url);
+  }
+
   async getCurrentUser(accessToken: string): Promise<BaseResponse<User>> {
     const url = new URLBuilder()
       .addPath(API_ENDPOINTS.users)
