@@ -6,26 +6,22 @@ import { apiClient } from "@/features/shared/api/client";
 import { User, Store, Package, MapPin, Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Product } from "@/features/products/types";
-
-import { userRole } from "@/features/shared/types/user";
+import { userRole, type UserRole } from "@/features/shared/types/user";
 
 interface SellerProfile {
   _id: string;
   username: string;
   email: string;
-  role: string;
+  role: UserRole;
   address?: string;
   phonenumber?: string;
   imageUrls?: string[];
 }
 
-export default async function SellerShopPage({
-  params,
-}: {
-  params: Promise<{ sellerId: string }>;
-}) {
-  const { sellerId } = await params;
+export default async function SellerShopPage(
+  params: PageProps<"/shop/[sellerId]">,
+) {
+  const { sellerId } = await params.params;
 
   const userUrl = new URLBuilder()
     .addPath(API_ENDPOINTS.users)
@@ -34,7 +30,7 @@ export default async function SellerShopPage({
 
   const [userResponse, productsResponse] = await Promise.all([
     apiClient.get<SellerProfile>(userUrl),
-    productService.getProducts({ ownerId: sellerId, limit: 1 }).catch(() => null),
+    productService.getProducts({ ownerId: sellerId }).catch(() => null),
   ]);
 
   if (!userResponse.success && userResponse.status !== 404) {
@@ -47,7 +43,10 @@ export default async function SellerShopPage({
     return notFound();
   }
 
-  const totalProducts = productsResponse?.data?.totalItems || 0;
+  const initialProductsPage = productsResponse?.success
+    ? productsResponse
+    : undefined;
+  const totalProducts = initialProductsPage?.data?.totalItems;
 
   return (
     <main className="min-h-screen bg-zinc-50 pb-12">
@@ -97,7 +96,11 @@ export default async function SellerShopPage({
               <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-600">
                 <div className="flex items-center gap-1.5">
                   <Package className="w-4 h-4" />
-                  <span>{totalProducts} Sản phẩm</span>
+                  <span>
+                    {typeof totalProducts === "number"
+                      ? `${totalProducts} Sản phẩm`
+                      : "Sản phẩm"}
+                  </span>
                 </div>
                 {seller.address && (
                   <div className="flex items-center gap-1.5">
@@ -135,7 +138,10 @@ export default async function SellerShopPage({
           <h2 className="text-xl font-bold text-zinc-900">Sản phẩm</h2>
         </div>
 
-        <ProductList filter={{ ownerId: sellerId }} />
+        <ProductList
+          filter={{ ownerId: sellerId }}
+          initialProductsPage={initialProductsPage}
+        />
       </div>
     </main>
   );

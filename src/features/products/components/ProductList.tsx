@@ -9,9 +9,11 @@ import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { cn } from "@/features/shared/utils/cn";
 import type { Product } from "../types/product.interface";
 import type { ProductFilter } from "../types";
+import type { BaseResponse, PaginationResponse } from "@/types/global.types";
 
 export interface ProductListProps {
   filter?: ProductFilter;
+  initialProductsPage?: BaseResponse<PaginationResponse<Product>>;
 }
 
 function getItemsPerRow(width: number) {
@@ -27,12 +29,12 @@ function getEstimatedRowHeight(itemsPerRow: number) {
   return 420;
 }
 
-export function ProductList({ filter }: ProductListProps = {}) {
+export function ProductList({ filter, initialProductsPage }: ProductListProps = {}) {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [itemsPerRow, setItemsPerRow] = useState(4);
 
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    useProducts(filter);
+    useProducts(filter, { initialPage: initialProductsPage });
 
   const isIntersecting = useIntersectionObserver(sentinelRef, {
     enabled: !!hasNextPage,
