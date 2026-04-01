@@ -3,10 +3,8 @@ import { productService } from "@/features/products/services/products.service";
 import { userService } from "@/features/profile/services/users.service";
 import { User as UserIcon, Store, Package, MapPin, Mail, Phone } from "lucide-react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import { userRole, type User } from "@/features/shared/types/user";
+import { redirect } from "next/navigation";
 import type { Product } from "@/features/products/types";
-
 export default async function SellerShopPage(
   params: PageProps<"/shop/[sellerId]">,
 ) {
@@ -23,8 +21,8 @@ export default async function SellerShopPage(
 
   const seller = userResponse.data;
 
-  if (!userResponse.success || !seller || (seller.role !== userRole.SELLER && seller.role !== userRole.ADMIN)) {
-    return notFound();
+  if (!userResponse.success || !seller) {
+    redirect("/");
   }
 
   const initialProductsPage = productsResponse?.success
