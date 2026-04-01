@@ -68,6 +68,15 @@ export function CategoryCommand({
             No categories found.
           </CommandEmpty>
 
+          <CommandGroup>
+            <CommandItem
+              value=""
+              onSelect={() => handleSelectCategory({ _id: "", name: "Tất cả danh mục", slug: "", description: "" })}
+            >
+              Tất cả danh mục
+            </CommandItem>
+          </CommandGroup>
+
           {parentCategories && parentCategories.length > 0 ? (
             parentCategories.map((category) => {
               const subcategories = getSubcategories(category._id || "");

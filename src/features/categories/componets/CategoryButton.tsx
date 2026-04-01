@@ -7,14 +7,25 @@ import { Category } from "@/features/categories/types/categories.interface";
 
 interface CategoryButtonProps {
   categories: Category[];
+  value?: string;
+  onChange?: (category: Category) => void;
 }
 
-export function CategoryButton({ categories }: CategoryButtonProps) {
+export function CategoryButton({ categories, value, onChange }: CategoryButtonProps) {
   const [open, setOpen] = useState(false);
 
+  const selectedCategory = categories.find(
+    (c) => (c.slug || c.name) === value
+  );
+
   const handleSelectCategory = (category: Category) => {
-    const slug = category.slug || category.name;
-    window.location.href = `/categories/${slug}`;
+    if (onChange) {
+      onChange(category);
+      setOpen(false);
+    } else {
+      const slug = category.slug || category.name;
+      window.location.href = `/categories/${slug}`;
+    }
   };
 
   return (
@@ -24,7 +35,9 @@ export function CategoryButton({ categories }: CategoryButtonProps) {
         className="group flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground rounded-md hover:bg-accent"
         aria-label="Browse Categories"
       >
-        <span className="hidden sm:inline">Danh mục</span>
+        <span className="hidden sm:inline w-[80px] truncate text-left">
+          {selectedCategory ? selectedCategory.name : "Danh mục"}
+        </span>
         <ChevronDown className="h-5 w-5 transition-transform group-hover:scale-110" />
       </button>
 
