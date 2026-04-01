@@ -11,6 +11,7 @@ import {
   useSelectedVariant,
 } from "../../store/productDetailsStore";
 import { useParams } from "next/navigation";
+import { useAddToCart } from "@/features/cart";
 
 interface ProductActionsProps {
   inStock: boolean;
@@ -30,8 +31,15 @@ export function ProductActions({
   const { productId } = useParams();
   const increaseQuantity = useIncreaseQuantity();
   const selectedVariant = useSelectedVariant();
+  const { mutate: addToCart } = useAddToCart();
   const handleAddToCart = () => {
-    console.log(selectedVariant, quantity, productId);
+    if (!selectedVariant || !productId) return;
+
+    addToCart({
+      productId: productId as string,
+      sku: selectedVariant.sku,
+      quantity,
+    });
   };
 
   return (

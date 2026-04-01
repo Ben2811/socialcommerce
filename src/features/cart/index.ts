@@ -19,3 +19,23 @@ export {
   calculateTotal,
   calculateOrderSummary,
 } from "./utils/cartCalculations";
+
+export {
+  cartService,
+  CartService,
+  type AddCartItemInput,
+  type UpdateCartItemInput,
+  type RemoveCartItemInput,
+  type CartApiItem,
+  type CartApiResponse,
+  type CartSummary,
+} from "./services/cart.service";
+
+export {
+  useCart,
+  useAddToCart,
+  useUpdateCartItem,
+  useRemoveFromCart,
+  useClearCart,
+  cartQueryKeys,
+} from "./hooks/useCart";

@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
   categories: "/api/categories",
   reviews: "/api/reviews",
   messages: "/api/messages",
+  cart: "/api/cart",
   admin: {
     users: "/api/admin/users",
     products: "/api/admin/products",
@@ -14,4 +15,3 @@ export const API_ENDPOINTS = {
 } as const;
 
 export type Endpoints = (typeof API_ENDPOINTS)[keyof typeof API_ENDPOINTS];
-
