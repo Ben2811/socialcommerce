@@ -1,11 +1,9 @@
 import { ProductList } from "@/features/products";
 
-interface SearchPageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const resolvedParams = await searchParams;
+export default async function SearchPage(
+  props: PageProps<"/search">,
+) {
+  const resolvedParams = await props.searchParams;
   const q = typeof resolvedParams.q === "string" ? resolvedParams.q : "";
   const category = typeof resolvedParams.category === "string" ? resolvedParams.category : undefined;
 
