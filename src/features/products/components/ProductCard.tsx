@@ -20,7 +20,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     return (
       <Card className="w-full h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-ring p-0 relative group flex flex-col">
-        <Link href={`/products/${product._id}`} className="absolute inset-0 z-0" aria-label={`View ${name}`}>
+        <Link href={product._id ? `/products/${product._id}` : '#'} className="absolute inset-0 z-0" aria-label={`View ${name}`}>
           <span className="sr-only">View {name}</span>
         </Link>
 

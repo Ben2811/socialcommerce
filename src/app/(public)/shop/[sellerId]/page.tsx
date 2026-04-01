@@ -33,13 +33,17 @@ export default async function SellerShopPage({
     .build();
 
   const [userResponse, productsResponse] = await Promise.all([
-    apiClient.get<SellerProfile>(userUrl).catch(() => null),
+    apiClient.get<SellerProfile>(userUrl),
     productService.getProducts({ ownerId: sellerId, limit: 1 }).catch(() => null),
   ]);
 
-  const seller = userResponse?.data;
+  if (!userResponse.success && userResponse.status !== 404) {
+    throw new Error(userResponse.message || "Failed to fetch seller profile");
+  }
 
-  if (!seller || (seller.role !== userRole.SELLER && seller.role !== userRole.ADMIN)) {
+  const seller = userResponse.data;
+
+  if (!userResponse.success || !seller || (seller.role !== userRole.SELLER && seller.role !== userRole.ADMIN)) {
     return notFound();
   }
 
