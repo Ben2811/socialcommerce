@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { productService } from "../services/products.service";
 import type { ProductFilter } from "../types";
 import type { Product } from "../types/product.interface";
-import type { PaginationResponse } from "@/types/global.types";
+import type { BaseResponse, PaginationResponse } from "@/types/global.types";
 
 export const productQueryKeys = {
   all: ["products"] as const,
@@ -12,15 +12,24 @@ export const productQueryKeys = {
   detail: (id: string) => [...productQueryKeys.details(), id] as const,
 };
 
-export function useProducts(filter: ProductFilter = {}) {
+interface UseProductsOptions {
+  initialPage?: BaseResponse<PaginationResponse<Product>>;
+}
+
+export function useProducts(
+  filter: ProductFilter = {},
+  options: UseProductsOptions = {},
+) {
+  const initialPageParam = filter.page ?? 1;
+
   return useInfiniteQuery({
     queryKey: productQueryKeys.list(filter),
-    queryFn: ({ pageParam = filter.page ?? 1 }) =>
+    queryFn: ({ pageParam = initialPageParam }) =>
       productService.getProducts({
         ...filter,
         page: pageParam,
       }),
-    initialPageParam: filter.page ?? 1,
+    initialPageParam,
     getNextPageParam: (
       lastPage: { data: PaginationResponse<Product> },
     ) => {
@@ -28,5 +37,12 @@ export function useProducts(filter: ProductFilter = {}) {
       const { currentPage, totalPages } = lastPage.data;
       return currentPage < totalPages ? currentPage + 1 : undefined;
     },
+    initialData: options.initialPage
+      ? {
+          pages: [options.initialPage],
+          pageParams: [initialPageParam],
+        }
+      : undefined,
+    refetchOnMount: options.initialPage ? false : undefined,
   });
 }

@@ -2,6 +2,7 @@ export interface BaseResponse<T> {
   success: boolean;
   data: T;
   message?: string;
+  status?: number;
 }
 
 export interface PaginationResponse<T> {

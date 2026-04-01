@@ -18,10 +18,13 @@ export function ProductCard({ product }: ProductCardProps) {
   const rating = 4.5;
   const sold = 0;
 
-  return (
-    <Link href={`/products/${product._id}`}>
-      <Card className="w-full h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-ring p-0">
-        <div className="relative h-[200px] w-full bg-muted overflow-hidden group">
+    return (
+      <Card className="w-full h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-ring p-0 relative group flex flex-col">
+        <Link href={product._id ? `/products/${product._id}` : '#'} className="absolute inset-0 z-0" aria-label={`View ${name}`}>
+          <span className="sr-only">View {name}</span>
+        </Link>
+
+        <div className="relative h-[200px] w-full bg-muted overflow-hidden">
           <Image
             src={image}
             alt={name}
@@ -36,7 +39,7 @@ export function ProductCard({ product }: ProductCardProps) {
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute top-3 right-3 rounded-full",
+              "absolute top-3 right-3 rounded-full z-10",
               "bg-card/80 backdrop-blur-sm",
               "text-muted-foreground hover:text-primary hover:bg-card/90",
             )}
@@ -76,7 +79,10 @@ export function ProductCard({ product }: ProductCardProps) {
               "flex items-center justify-between gap-2",
             )}
           >
-            <div className="flex items-center gap-2 min-w-0">
+            <Link
+              href={`/shop/${ownerId}`}
+              className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity relative z-10"
+            >
               <div
                 className={cn(
                   "w-5 h-5 rounded-full flex-shrink-0",
@@ -85,16 +91,15 @@ export function ProductCard({ product }: ProductCardProps) {
               >
                 <User className="w-3 h-3 text-accent-foreground" />
               </div>
-              <span className="text-xs text-muted-foreground truncate">
-                {ownerId}
+              <span className="text-xs text-foreground font-medium truncate hover:underline">
+                {product.owner?.username}
               </span>
-            </div>
+            </Link>
             <span className="text-xs text-muted-foreground flex-shrink-0">
               Sold {sold}
             </span>
           </div>
         </CardContent>
       </Card>
-    </Link>
   );
 }
