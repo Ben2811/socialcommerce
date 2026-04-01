@@ -32,17 +32,19 @@ function SearchForm({
     const params = new URLSearchParams();
     if (query.trim()) params.append("q", query.trim());
     if (category) params.append("category", category);
-    router.push(`/search?${params.toString()}`);
+    const queryString = params.toString();
+    router.push(queryString ? `/search?${queryString}` : "/search");
   };
 
-  const handleCategorySelect = (selected: Category) => {
-    const catSlug = selected.slug;
+  const handleCategorySelect = (selected: Category | null) => {
+    const catSlug = selected?.slug ?? "";
     setCategory(catSlug);
 
     const params = new URLSearchParams();
     if (query.trim()) params.append("q", query.trim());
     if (catSlug) params.append("category", catSlug);
-    router.push(`/search?${params.toString()}`);
+    const queryString = params.toString();
+    router.push(queryString ? `/search?${queryString}` : "/search");
   };
 
   return (
@@ -60,6 +62,7 @@ function SearchForm({
           variant="ghost"
           size="icon"
           className="text-muted-foreground size-8 shrink-0 rounded-full hover:bg-transparent hover:text-foreground"
+          aria-label="Tìm kiếm"
         >
           <Search className="size-4" />
         </Button>
@@ -69,6 +72,7 @@ function SearchForm({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Tìm kiếm sản phẩm..."
+          aria-label="Ô nhập từ khóa tìm kiếm"
           className="h-full flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:opacity-50"
         />
       </form>
@@ -99,21 +103,23 @@ export function SearchBar({ className, categories }: SearchBarProps) {
         <Suspense
           fallback={
             <>
-              <div className="flex min-w-[130px] cursor-pointer items-center justify-between bg-muted/50 px-4 text-sm transition-colors hover:bg-muted group">
-                <CategoryButton categories={categories} />
+              <div className="flex min-w-[130px] items-center justify-between bg-muted/50 px-4 text-sm text-muted-foreground/50">
+                <span>Danh mục</span>
+                <Search className="h-4 w-4" />
               </div>
               <div className="flex flex-1 items-center pl-2 pr-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-muted-foreground/50 size-8 shrink-0 rounded-full hover:bg-transparent pointer-events-none"
+                  className="text-muted-foreground/30 size-8 shrink-0 rounded-full cursor-not-allowed"
+                  disabled
                 >
                   <Search className="size-4" />
                 </Button>
                 <Input
                   type="text"
                   placeholder="Tìm kiếm sản phẩm..."
-                  className="h-full flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0 disabled:opacity-50"
+                  className="h-full flex-1 border-0 bg-transparent px-2 text-sm shadow-none focus-visible:ring-0 disabled:opacity-30"
                   disabled
                 />
               </div>

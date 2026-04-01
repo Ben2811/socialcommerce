@@ -8,7 +8,7 @@ import { Category } from "@/features/categories/types/categories.interface";
 interface CategoryButtonProps {
   categories: Category[];
   value?: string;
-  onChange?: (category: Category) => void;
+  onChange?: (category: Category | null) => void;
 }
 
 export function CategoryButton({ categories, value, onChange }: CategoryButtonProps) {
@@ -18,11 +18,11 @@ export function CategoryButton({ categories, value, onChange }: CategoryButtonPr
     (c) => (c.slug || c.name) === value
   );
 
-  const handleSelectCategory = (category: Category) => {
+  const handleSelectCategory = (category: Category | null) => {
     if (onChange) {
       onChange(category);
       setOpen(false);
-    } else {
+    } else if (category) {
       const slug = category.slug || category.name;
       window.location.href = `/categories/${slug}`;
     }

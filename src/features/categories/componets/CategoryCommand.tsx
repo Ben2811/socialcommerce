@@ -19,7 +19,7 @@ interface CategoryCommandProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
-  onSelectCategory?: (category: Category) => void;
+  onSelectCategory?: (category: Category | null) => void;
 }
 
 export function CategoryCommand({
@@ -49,7 +49,7 @@ export function CategoryCommand({
   );
 
   const handleSelectCategory = useCallback(
-    (category: Category) => {
+    (category: Category | null) => {
       onSelectCategory?.(category);
       onOpenChange(false);
     },
@@ -71,7 +71,7 @@ export function CategoryCommand({
           <CommandGroup>
             <CommandItem
               value=""
-              onSelect={() => handleSelectCategory({ _id: "", name: "Tất cả danh mục", slug: "", description: "" })}
+              onSelect={() => handleSelectCategory(null)}
             >
               Tất cả danh mục
             </CommandItem>
