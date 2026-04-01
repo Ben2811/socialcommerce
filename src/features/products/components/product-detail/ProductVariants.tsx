@@ -1,4 +1,10 @@
+"use client";
 import type { Variant } from "@/features/products/types/product.interface";
+import {
+  useSelectedVariant,
+  useSetSelectedVariant,
+} from "../../store/productDetailsStore";
+import { cn } from "@/features/shared/utils/cn";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -11,6 +17,15 @@ interface ProductVariantsProps {
 }
 
 export function ProductVariants({ variants }: ProductVariantsProps) {
+  const setSelectedVariant = useSetSelectedVariant();
+  const selectedVariant = useSelectedVariant();
+  const handleSelectVariant = (variant: Variant) => {
+    if (selectedVariant?.sku === variant.sku) {
+      setSelectedVariant(null);
+      return;
+    }
+    setSelectedVariant(variant);
+  };
   return (
     <div className="space-y-2">
       <p className="text-sm font-medium">Tùy chọn sản phẩm</p>
@@ -18,14 +33,18 @@ export function ProductVariants({ variants }: ProductVariantsProps) {
         {variants.map((variant) => (
           <div
             key={variant.sku}
-            className="rounded-lg border bg-muted/30 px-3 py-2"
+            className={cn(
+              "border border-border rounded-sm p-3 cursor-pointer hover:bg-accent",
+              selectedVariant?.sku === variant.sku && "border-primary border-2",
+            )}
+            onClick={() => handleSelectVariant(variant)}
           >
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            <p className="text-xs upperc965 ₫ase tracking-wide text-muted-foreground">
               SKU
             </p>
             <p className="mt-1 text-sm font-medium">{variant.sku}</p>
             <div className="mt-2 flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Giá:</span>
+              <span className="text-muted-foreground">Giá: </span>
               <span className="font-semibold text-primary">
                 {currencyFormatter.format(variant.price)}
               </span>

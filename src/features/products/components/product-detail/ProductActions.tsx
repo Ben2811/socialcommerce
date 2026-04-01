@@ -1,10 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { MinusIcon, PlusIcon, ShoppingCartIcon, ZapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChatButton } from "@/features/chat/components/ChatButton";
+import {
+  useSelectedQuantity,
+  useDecreaseQuantity,
+  useIncreaseQuantity,
+  useSelectedVariant,
+} from "../../store/productDetailsStore";
+import { useParams } from "next/navigation";
 
 interface ProductActionsProps {
   inStock: boolean;
@@ -19,7 +25,14 @@ export function ProductActions({
   sellerId,
   sellerName,
 }: ProductActionsProps) {
-  const [quantity, setQuantity] = useState(1);
+  const quantity = useSelectedQuantity();
+  const decreaseQuantity = useDecreaseQuantity();
+  const { productId } = useParams();
+  const increaseQuantity = useIncreaseQuantity();
+  const selectedVariant = useSelectedVariant();
+  const handleAddToCart = () => {
+    console.log(selectedVariant, quantity, productId);
+  };
 
   return (
     <div className="space-y-4">
@@ -28,7 +41,7 @@ export function ProductActions({
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            onClick={decreaseQuantity}
             aria-label="Giảm số lượng"
           >
             <MinusIcon />
@@ -39,7 +52,7 @@ export function ProductActions({
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => setQuantity((q) => q + 1)}
+            onClick={increaseQuantity}
             disabled={!inStock}
             aria-label="Tăng số lượng"
           >
@@ -58,7 +71,12 @@ export function ProductActions({
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button variant="outline" className="flex-1" disabled={!inStock}>
+        <Button
+          variant="outline"
+          className="flex-1"
+          disabled={!inStock || !selectedVariant}
+          onClick={handleAddToCart}
+        >
           <ShoppingCartIcon />
           Thêm vào giỏ hàng
         </Button>
