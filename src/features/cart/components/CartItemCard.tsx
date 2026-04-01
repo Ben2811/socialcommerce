@@ -7,8 +7,8 @@ import { formatPrice } from "@/features/shared";
 
 interface CartItemCardProps {
   item: CartItem;
-  onUpdateQuantity: (id: number, delta: number) => void;
-  onRemove: (id: number) => void;
+  onUpdateQuantity: (productId: string, sku: string, delta: number) => void;
+  onRemove: (productId: string, sku: string) => void;
 }
 
 export function CartItemCard({
@@ -46,7 +46,7 @@ export function CartItemCard({
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1">
             <button
-              onClick={() => onUpdateQuantity(item.id, -1)}
+              onClick={() => onUpdateQuantity(item.productId, item.sku, -1)}
               disabled={item.quantity <= 1}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={`Decrease quantity for ${item.name}`}
@@ -60,7 +60,7 @@ export function CartItemCard({
               {item.quantity}
             </span>
             <button
-              onClick={() => onUpdateQuantity(item.id, 1)}
+              onClick={() => onUpdateQuantity(item.productId, item.sku, 1)}
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors text-gray-600"
               aria-label={`Increase quantity for ${item.name}`}
             >
@@ -73,7 +73,7 @@ export function CartItemCard({
               {formatPrice(item.price * item.quantity)}
             </span>
             <button
-              onClick={() => onRemove(item.id)}
+              onClick={() => onRemove(item.productId, item.sku)}
               className="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
               aria-label={`Remove ${item.name} from cart`}
             >

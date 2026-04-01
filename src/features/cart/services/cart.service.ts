@@ -2,49 +2,24 @@ import { apiClient } from "@/features/shared/api/client";
 import { API_ENDPOINTS } from "@/features/shared/constants/endpoints";
 import { URLBuilder } from "@/features/shared/lib/urlbuilder";
 import type { BaseResponse } from "@/types/global.types";
-import type { CartItem } from "../types/cart";
+import type {
+  CartItem,
+  CartApiItem,
+  CartApiResponse,
+  AddCartItemInput,
+  UpdateCartItemInput,
+  RemoveCartItemInput,
+  CartSummary,
+} from "../types/cart";
 
-export interface CartApiItem {
-  productId: string;
-  productName: string;
-  sku: string;
-  quantity: number;
-  price: number;
-  imageUrls: string[];
-  subtotal?: number;
-}
-
-export interface CartApiResponse {
-  _id: string;
-  userId: string;
-  items: CartApiItem[];
-  totalAmount: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface AddCartItemInput {
-  productId: string;
-  sku: string;
-  quantity: number;
-}
-
-export interface UpdateCartItemInput {
-  productId: string;
-  sku: string;
-  quantity: number;
-}
-
-export interface RemoveCartItemInput {
-  productId: string;
-  sku: string;
-}
-
-export interface CartSummary {
-  itemCount: number;
-  totalQuantity: number;
-  totalAmount: number;
-}
+export type {
+  CartApiItem,
+  CartApiResponse,
+  AddCartItemInput,
+  UpdateCartItemInput,
+  RemoveCartItemInput,
+  CartSummary,
+};
 
 interface ICartService {
   getCart(token?: string | null): Promise<BaseResponse<CartApiResponse>>;
@@ -65,14 +40,12 @@ interface ICartService {
 
 function mapCartApiItemToCartItem(item: CartApiItem): CartItem {
   return {
-    id: Number.parseInt(item.productId.slice(-8), 16) || 0,
+    productId: item.productId,
+    sku: item.sku,
     name: item.productName,
     price: item.price,
     image: item.imageUrls[0] ?? "",
     quantity: item.quantity,
-    category: "",
-    shopName: "",
-    shopId: 0,
   };
 }
 

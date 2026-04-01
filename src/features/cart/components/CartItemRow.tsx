@@ -16,8 +16,8 @@ import { TableRow, TableCell } from "@/components/ui/table";
 
 interface CartItemRowProps {
   item: CartItem;
-  onUpdateQuantity: (id: number, delta: number) => void;
-  onRemove: (id: number) => void;
+  onUpdateQuantity: (productId: string, sku: string, delta: number) => void;
+  onRemove: (productId: string, sku: string) => void;
 }
 
 export function CartItemRow({
@@ -61,7 +61,7 @@ export function CartItemRow({
 
       {/* Category */}
       <TableCell className="py-3">
-        <span className="text-sm text-muted-foreground">{item.category}</span>
+        <span className="text-sm text-muted-foreground">{item.category ?? "—"}</span>
       </TableCell>
 
       {/* Unit price */}
@@ -77,7 +77,7 @@ export function CartItemRow({
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => onUpdateQuantity(item.id, -1)}
+            onClick={() => onUpdateQuantity(item.productId, item.sku, -1)}
             disabled={item.quantity <= 1}
             className="rounded-none size-7"
             aria-label={`Giảm số lượng ${item.name}`}
@@ -95,7 +95,7 @@ export function CartItemRow({
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => onUpdateQuantity(item.id, 1)}
+            onClick={() => onUpdateQuantity(item.productId, item.sku, 1)}
             className="rounded-none size-7"
             aria-label={`Tăng số lượng ${item.name}`}
           >
@@ -127,7 +127,7 @@ export function CartItemRow({
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
-              onClick={() => onRemove(item.id)}
+              onClick={() => onRemove(item.productId, item.sku)}
             >
               <Trash2 className="size-4" />
               Xóa khỏi giỏ

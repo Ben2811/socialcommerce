@@ -16,21 +16,21 @@ import {
 
 interface CartTableProps {
   groups: CartGroupByShop[];
-  selectedIds: Set<number>;
+  selectedKeys: Set<string>;
   allSelected: boolean;
-  allItemIds: number[];
-  onToggleSelectAll: (allIds: number[]) => void;
-  onToggleSelectShop: (shopId: number, allIds: number[]) => void;
-  onUpdateQuantity: (id: number, delta: number) => void;
-  onRemove: (id: number) => void;
+  allItemKeys: string[];
+  onToggleSelectAll: (allKeys: string[]) => void;
+  onToggleSelectShop: (shopId: string, allKeys: string[]) => void;
+  onUpdateQuantity: (productId: string, sku: string, delta: number) => void;
+  onRemove: (productId: string, sku: string) => void;
 }
 
 
 export function CartTable({
   groups,
-  selectedIds,
+  selectedKeys,
   allSelected,
-  allItemIds,
+  allItemKeys,
   onToggleSelectAll,
   onToggleSelectShop,
   onUpdateQuantity,
@@ -46,7 +46,7 @@ export function CartTable({
               <Checkbox
                 id="select-all-header"
                 checked={allSelected}
-                onCheckedChange={() => onToggleSelectAll(allItemIds)}
+                onCheckedChange={() => onToggleSelectAll(allItemKeys)}
                 aria-label="Chọn tất cả sản phẩm"
               />
               <span>Hình ảnh</span>
@@ -63,9 +63,11 @@ export function CartTable({
 
       <TableBody>
         {groups.map((group, groupIndex) => {
-          const shopItemIds = group.items.map((i: CartItem) => i.id);
-          const shopAllSelected = shopItemIds.every((id: number) =>
-            selectedIds.has(id)
+          const shopItemKeys = group.items.map(
+            (i: CartItem) => `${i.productId}_${i.sku}`
+          );
+          const shopAllSelected = shopItemKeys.every((key: string) =>
+            selectedKeys.has(key)
           );
 
           return (
@@ -78,7 +80,7 @@ export function CartTable({
                       id={`select-shop-${group.shopId}`}
                       checked={shopAllSelected}
                       onCheckedChange={() =>
-                        onToggleSelectShop(group.shopId, shopItemIds)
+                        onToggleSelectShop(group.shopId, shopItemKeys)
                       }
                       aria-label={`Chọn tất cả sản phẩm của ${group.shopName}`}
                     />
@@ -92,7 +94,7 @@ export function CartTable({
               {/* Product rows */}
               {group.items.map((item: CartItem) => (
                 <CartItemRow
-                  key={item.id}
+                  key={`${item.productId}_${item.sku}`}
                   item={item}
                   onUpdateQuantity={onUpdateQuantity}
                   onRemove={onRemove}

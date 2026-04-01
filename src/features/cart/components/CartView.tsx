@@ -7,79 +7,115 @@ import { CartHeader } from "./CartHeader";
 import { CartTable } from "./CartTable";
 import { CartCheckoutBar } from "./CartCheckoutBar";
 import { EmptyCart } from "./EmptyCart";
+import { useCart, useUpdateCartItem, useRemoveFromCart } from "../hooks/useCart";
+import { cartService } from "../services/cart.service";
 
-interface CartViewProps {
-  initialItems: CartItem[];
+function getItemKey(item: CartItem): string {
+  return `${item.productId}_${item.sku}`;
 }
 
-export function CartView({ initialItems }: CartViewProps) {
-  const [items, setItems] = useState<CartItem[]>(initialItems);
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+export function CartView() {
+  const { data: cartData, isLoading, isError, error } = useCart();
+  const updateCartItem = useUpdateCartItem();
+  const removeFromCart = useRemoveFromCart();
+
+  const items = useMemo<CartItem[]>(
+    () => (cartData?.items ?? []).map((item) => cartService.mapItem(item)),
+    [cartData],
+  );
+
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
 
   const groups = useMemo(() => groupCartItemsByShop(items), [items]);
 
-  const allItemIds = useMemo(() => items.map((i) => i.id), [items]);
+  const allItemKeys = useMemo(() => items.map(getItemKey), [items]);
 
   const allSelected =
-    allItemIds.length > 0 && allItemIds.every((id) => selectedIds.has(id));
+    allItemKeys.length > 0 && allItemKeys.every((key) => selectedKeys.has(key));
 
   const handleToggleSelectShop = useCallback(
-    (_shopId: number, allIds: number[]) => {
-      setSelectedIds((prev) => {
-        const shopAllSelected = allIds.every((id) => prev.has(id));
+    (_shopId: string, allKeys: string[]) => {
+      setSelectedKeys((prev) => {
+        const shopAllSelected = allKeys.every((key) => prev.has(key));
         const next = new Set(prev);
         if (shopAllSelected) {
-          for (const id of allIds) next.delete(id);
+          for (const key of allKeys) next.delete(key);
         } else {
-          for (const id of allIds) next.add(id);
+          for (const key of allKeys) next.add(key);
         }
         return next;
       });
     },
-    []
+    [],
   );
 
-  const handleToggleSelectAll = useCallback((allIds: number[]) => {
-    setSelectedIds((prev) => {
-      const isAllSelected = allIds.every((id) => prev.has(id));
-      return isAllSelected ? new Set<number>() : new Set<number>(allIds);
+  const handleToggleSelectAll = useCallback((allKeys: string[]) => {
+    setSelectedKeys((prev) => {
+      const isAllSelected = allKeys.every((key) => prev.has(key));
+      return isAllSelected ? new Set<string>() : new Set<string>(allKeys);
     });
   }, []);
 
-  const handleUpdateQuantity = useCallback((id: number, delta: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
-  }, []);
+  const handleUpdateQuantity = useCallback(
+    (productId: string, sku: string, delta: number) => {
+      const item = items.find(
+        (i) => i.productId === productId && i.sku === sku,
+      );
+      if (!item) return;
+      const newQuantity = Math.max(1, item.quantity + delta);
+      if (newQuantity === item.quantity) return;
+      updateCartItem.mutate({ productId, sku, quantity: newQuantity });
+    },
+    [items, updateCartItem],
+  );
 
-  const handleRemove = useCallback((id: number) => {
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-  }, []);
+  const handleRemove = useCallback(
+    (productId: string, sku: string) => {
+      removeFromCart.mutate({ productId, sku });
+      setSelectedKeys((prev) => {
+        const next = new Set(prev);
+        next.delete(`${productId}_${sku}`);
+        return next;
+      });
+    },
+    [removeFromCart],
+  );
 
   const handleCheckout = useCallback(() => {
     // TODO: implement checkout navigation
-    alert(`Đặt hàng ${selectedIds.size} sản phẩm đã chọn`);
-  }, [selectedIds]);
+    alert(`Đặt hàng ${selectedKeys.size} sản phẩm đã chọn`);
+  }, [selectedKeys]);
 
   const { selectedCount, totalAmount } = useMemo(() => {
-    const selectedItems = items.filter((item) => selectedIds.has(item.id));
+    const selectedItems = items.filter((item) =>
+      selectedKeys.has(getItemKey(item)),
+    );
     return {
       selectedCount: selectedItems.reduce((sum, i) => sum + i.quantity, 0),
       totalAmount: selectedItems.reduce(
         (sum, i) => sum + i.price * i.quantity,
-        0
+        0,
       ),
     };
-  }, [items, selectedIds]);
+  }, [items, selectedKeys]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Đang tải giỏ hàng...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-destructive">
+          {error instanceof Error ? error.message : "Không thể tải giỏ hàng"}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,9 +130,9 @@ export function CartView({ initialItems }: CartViewProps) {
             <div className="border border-border rounded-sm bg-card overflow-hidden">
               <CartTable
                 groups={groups}
-                selectedIds={selectedIds}
+                selectedKeys={selectedKeys}
                 allSelected={allSelected}
-                allItemIds={allItemIds}
+                allItemKeys={allItemKeys}
                 onToggleSelectAll={handleToggleSelectAll}
                 onToggleSelectShop={handleToggleSelectShop}
                 onUpdateQuantity={handleUpdateQuantity}

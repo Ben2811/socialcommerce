@@ -9,7 +9,7 @@ import type {
   CartApiResponse,
   RemoveCartItemInput,
   UpdateCartItemInput,
-} from "../services/cart.service";
+} from "../types/cart";
 
 export const cartQueryKeys = {
   all: ["cart"] as const,
@@ -21,11 +21,12 @@ export function useCart() {
     queryKey: cartQueryKeys.cart(),
     queryFn: async () => {
       const token = await getAuthToken();
+      if (!token) return null;
       const response = await cartService.getCart(token);
       if (!response.success) {
         throw new Error(response.message || "Không thể lấy giỏ hàng");
       }
-      return response.data;
+      return response.data ?? null;
     },
   });
 }

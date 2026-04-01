@@ -2,7 +2,6 @@
 export { CartItemCard } from "./components/CartItemCard";
 export { CartHeader } from "./components/CartHeader";
 export { EmptyCart } from "./components/EmptyCart";
-export { default as OrderSummary } from "./components/OrderSummary";
 
 // New components
 export { CartView } from "./components/CartView";
@@ -10,7 +9,16 @@ export { CartItemRow } from "./components/CartItemRow";
 export { CartTable } from "./components/CartTable";
 export { CartCheckoutBar } from "./components/CartCheckoutBar";
 
-export type { CartItem, CartGroupByShop } from "./types/cart";
+export type {
+  CartItem,
+  CartGroupByShop,
+  CartApiItem,
+  CartApiResponse,
+  AddCartItemInput,
+  UpdateCartItemInput,
+  RemoveCartItemInput,
+  CartSummary,
+} from "./types/cart";
 
 export { initialCartItems, groupCartItemsByShop } from "./constants/mock-data";
 export {
@@ -23,12 +31,6 @@ export {
 export {
   cartService,
   CartService,
-  type AddCartItemInput,
-  type UpdateCartItemInput,
-  type RemoveCartItemInput,
-  type CartApiItem,
-  type CartApiResponse,
-  type CartSummary,
 } from "./services/cart.service";
 
 export {
