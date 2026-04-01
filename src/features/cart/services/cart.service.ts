@@ -4,59 +4,33 @@ import { URLBuilder } from "@/features/shared/lib/urlbuilder";
 import type { BaseResponse } from "@/types/global.types";
 import type {
   CartItem,
-  CartApiItem,
-  CartApiResponse,
   AddCartItemInput,
   UpdateCartItemInput,
   RemoveCartItemInput,
-  CartSummary,
 } from "../types/cart";
 
 export type {
-  CartApiItem,
-  CartApiResponse,
+  CartItem,
   AddCartItemInput,
   UpdateCartItemInput,
   RemoveCartItemInput,
-  CartSummary,
 };
 
 interface ICartService {
-  getCart(token?: string | null): Promise<BaseResponse<CartApiResponse>>;
+  getCart(token?: string | null): Promise<BaseResponse<CartItem[]>>;
   addToCart(
     input: AddCartItemInput,
     token?: string | null,
-  ): Promise<BaseResponse<CartApiResponse>>;
+  ): Promise<BaseResponse<CartItem[]>>;
   updateCartItem(
     input: UpdateCartItemInput,
     token?: string | null,
-  ): Promise<BaseResponse<CartApiResponse>>;
+  ): Promise<BaseResponse<CartItem[]>>;
   removeFromCart(
     input: RemoveCartItemInput,
     token?: string | null,
-  ): Promise<BaseResponse<CartApiResponse>>;
+  ): Promise<BaseResponse<CartItem[]>>;
   clearCart(token?: string | null): Promise<BaseResponse<null>>;
-}
-
-function mapCartApiItemToCartItem(item: CartApiItem): CartItem {
-  return {
-    productId: item.productId,
-    sku: item.sku,
-    name: item.productName,
-    price: item.price,
-    image: item.imageUrls[0] ?? "",
-    quantity: item.quantity,
-  };
-}
-
-function getCartSummary(items: CartApiItem[], totalAmount: number): CartSummary {
-  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-
-  return {
-    itemCount: items.length,
-    totalQuantity,
-    totalAmount,
-  };
 }
 
 export class CartService implements ICartService {
@@ -66,15 +40,15 @@ export class CartService implements ICartService {
     return builder.build();
   }
 
-  async getCart(token?: string | null): Promise<BaseResponse<CartApiResponse>> {
-    return apiClient.get<CartApiResponse>(this.url(), token);
+  async getCart(token?: string | null): Promise<BaseResponse<CartItem[]>> {
+    return apiClient.get<CartItem[]>(this.url(), token);
   }
 
   async addToCart(
     input: AddCartItemInput,
     token?: string | null,
-  ): Promise<BaseResponse<CartApiResponse>> {
-    return apiClient.post<AddCartItemInput, CartApiResponse>(
+  ): Promise<BaseResponse<CartItem[]>> {
+    return apiClient.post<AddCartItemInput, CartItem[]>(
       this.url("items"),
       input,
       token,
@@ -84,8 +58,8 @@ export class CartService implements ICartService {
   async updateCartItem(
     input: UpdateCartItemInput,
     token?: string | null,
-  ): Promise<BaseResponse<CartApiResponse>> {
-    return apiClient.put<UpdateCartItemInput, CartApiResponse>(
+  ): Promise<BaseResponse<CartItem[]>> {
+    return apiClient.put<UpdateCartItemInput, CartItem[]>(
       this.url("items"),
       input,
       token,
@@ -95,10 +69,10 @@ export class CartService implements ICartService {
   async removeFromCart(
     input: RemoveCartItemInput,
     token?: string | null,
-  ): Promise<BaseResponse<CartApiResponse>> {
+  ): Promise<BaseResponse<CartItem[]>> {
     const { productId, sku } = input;
 
-    return apiClient.delete<CartApiResponse>(
+    return apiClient.delete<CartItem[]>(
       this.url(`items/${encodeURIComponent(productId)}/${encodeURIComponent(sku)}`),
       token,
     );
@@ -106,14 +80,6 @@ export class CartService implements ICartService {
 
   async clearCart(token?: string | null): Promise<BaseResponse<null>> {
     return apiClient.delete<null>(this.url(), token);
-  }
-
-  mapItem(item: CartApiItem): CartItem {
-    return mapCartApiItemToCartItem(item);
-  }
-
-  summarize(items: CartApiItem[], totalAmount: number): CartSummary {
-    return getCartSummary(items, totalAmount);
   }
 }
 

@@ -1,38 +1,33 @@
 "use client";
 
 import React from "react";
-import { CartGroupByShop, CartItem } from "../types/cart";
+import { CartItem } from "../types/cart";
 import { CartItemRow } from "./CartItemRow";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface CartTableProps {
-  groups: CartGroupByShop[];
+  items: CartItem[];
   selectedKeys: Set<string>;
   allSelected: boolean;
   allItemKeys: string[];
   onToggleSelectAll: (allKeys: string[]) => void;
-  onToggleSelectShop: (shopId: string, allKeys: string[]) => void;
+  onToggleSelectItem: (productId: string, sku: string) => void;
   onUpdateQuantity: (productId: string, sku: string, delta: number) => void;
   onRemove: (productId: string, sku: string) => void;
 }
 
+function getItemKey(item: CartItem): string {
+  return `${item.productId}_${item.sku}`;
+}
 
 export function CartTable({
-  groups,
+  items,
   selectedKeys,
   allSelected,
   allItemKeys,
   onToggleSelectAll,
-  onToggleSelectShop,
+  onToggleSelectItem,
   onUpdateQuantity,
   onRemove,
 }: CartTableProps) {
@@ -40,7 +35,6 @@ export function CartTable({
     <Table>
       <TableHeader>
         <TableRow className="border-b border-border hover:bg-transparent">
-          {/* Checkbox + Hình ảnh header */}
           <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background pl-4">
             <div className="flex items-center gap-2">
               <Checkbox
@@ -52,63 +46,55 @@ export function CartTable({
               <span>Hình ảnh</span>
             </div>
           </TableHead>
-          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Tên sản phẩm</TableHead>
-          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Danh mục</TableHead>
-          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Đơn giá</TableHead>
-          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Số lượng</TableHead>
-          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">Thành tiền</TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">
+            Tên sản phẩm
+          </TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">
+            Danh mục
+          </TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">
+            Đơn giá
+          </TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">
+            Số lượng
+          </TableHead>
+          <TableHead className="text-muted-foreground font-medium text-sm py-3 bg-background">
+            Thành tiền
+          </TableHead>
           <TableHead className="bg-background" />
         </TableRow>
       </TableHeader>
 
       <TableBody>
-        {groups.map((group, groupIndex) => {
-          const shopItemKeys = group.items.map(
-            (i: CartItem) => `${i.productId}_${i.sku}`
-          );
-          const shopAllSelected = shopItemKeys.every((key: string) =>
-            selectedKeys.has(key)
-          );
+        {items.map((item) => {
+          const itemKey = getItemKey(item);
+          const isSelected = selectedKeys.has(itemKey);
 
           return (
-            <React.Fragment key={group.shopId}>
-              {/* Shop group header row */}
+            <React.Fragment key={itemKey}>
               <TableRow className="bg-muted/50 hover:bg-muted/50 border-b border-border">
                 <TableCell className="pl-4 py-2" colSpan={8}>
                   <div className="flex items-center gap-2">
                     <Checkbox
-                      id={`select-shop-${group.shopId}`}
-                      checked={shopAllSelected}
+                      id={`select-item-${itemKey}`}
+                      checked={isSelected}
                       onCheckedChange={() =>
-                        onToggleSelectShop(group.shopId, shopItemKeys)
+                        onToggleSelectItem(item.productId, item.sku)
                       }
-                      aria-label={`Chọn tất cả sản phẩm của ${group.shopName}`}
+                      aria-label={`Chọn sản phẩm ${item.productName}`}
                     />
                     <span className="text-sm font-medium text-foreground">
-                      {group.shopName}
+                      {item.productName}
                     </span>
                   </div>
                 </TableCell>
               </TableRow>
 
-              {/* Product rows */}
-              {group.items.map((item: CartItem) => (
-                <CartItemRow
-                  key={`${item.productId}_${item.sku}`}
-                  item={item}
-                  onUpdateQuantity={onUpdateQuantity}
-                  onRemove={onRemove}
-                />
-              ))}
-
-              {/* Divider between shops */}
-              {groupIndex < groups.length - 1 && (
-                <TableRow className="hover:bg-transparent border-0 p-0">
-                  <TableCell colSpan={8} className="p-0">
-                    <Separator />
-                  </TableCell>
-                </TableRow>
-              )}
+              <CartItemRow
+                item={item}
+                onUpdateQuantity={onUpdateQuantity}
+                onRemove={onRemove}
+              />
             </React.Fragment>
           );
         })}

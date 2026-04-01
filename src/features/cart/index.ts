@@ -1,9 +1,7 @@
-// Original components (preserved)
-export { CartItemCard } from "./components/CartItemCard";
+// Cart feature exports
+
 export { CartHeader } from "./components/CartHeader";
 export { EmptyCart } from "./components/EmptyCart";
-
-// New components
 export { CartView } from "./components/CartView";
 export { CartItemRow } from "./components/CartItemRow";
 export { CartTable } from "./components/CartTable";
@@ -11,16 +9,12 @@ export { CartCheckoutBar } from "./components/CartCheckoutBar";
 
 export type {
   CartItem,
-  CartGroupByShop,
-  CartApiItem,
-  CartApiResponse,
   AddCartItemInput,
   UpdateCartItemInput,
   RemoveCartItemInput,
   CartSummary,
 } from "./types/cart";
 
-export { initialCartItems, groupCartItemsByShop } from "./constants/mock-data";
 export {
   calculateSubtotal,
   calculateShippingFee,

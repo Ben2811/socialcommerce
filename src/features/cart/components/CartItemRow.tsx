@@ -26,19 +26,18 @@ export function CartItemRow({
   onRemove,
 }: CartItemRowProps) {
   const [imgError, setImgError] = useState(false);
+  const imageUrl = item.imageUrls?.[0] ?? "";
 
   return (
     <TableRow className="border-b border-border hover:bg-muted/30 transition-colors">
-      {/* Image aligned with header Checkbox+Text spacing */}
       <TableCell className="w-[120px] pl-4 py-3">
         <div className="flex items-center gap-2">
-          {/* Spacer to align with Header Checkbox (size 4) */}
           <div className="w-4 flex-shrink-0" />
           <div className="relative size-14 rounded overflow-hidden bg-muted flex-shrink-0">
-            {!imgError ? (
+            {!imgError && imageUrl ? (
               <Image
-                src={item.image}
-                alt={item.name}
+                src={imageUrl}
+                alt={item.productName}
                 fill
                 className="object-cover"
                 onError={() => setImgError(true)}
@@ -52,26 +51,24 @@ export function CartItemRow({
         </div>
       </TableCell>
 
-      {/* Product name */}
       <TableCell className="py-3">
         <span className="text-sm text-foreground line-clamp-2">
-          {item.name}
+          {item.productName}
         </span>
       </TableCell>
 
-      {/* Category */}
       <TableCell className="py-3">
-        <span className="text-sm text-muted-foreground">{item.category ?? "—"}</span>
+        <span className="text-sm text-muted-foreground">
+          {item.category?.name ?? "—"}
+        </span>
       </TableCell>
 
-      {/* Unit price */}
       <TableCell className="py-3">
         <span className="text-sm text-foreground">
-          {item.price.toLocaleString("vi-VN")}
+          {formatPrice(item.price)}
         </span>
       </TableCell>
 
-      {/* Quantity control */}
       <TableCell className="py-3">
         <div className="inline-flex items-center border border-border rounded overflow-hidden">
           <Button
@@ -80,7 +77,7 @@ export function CartItemRow({
             onClick={() => onUpdateQuantity(item.productId, item.sku, -1)}
             disabled={item.quantity <= 1}
             className="rounded-none size-7"
-            aria-label={`Giảm số lượng ${item.name}`}
+            aria-label={`Giảm số lượng ${item.productName}`}
           >
             <Minus className="size-3" />
           </Button>
@@ -97,25 +94,23 @@ export function CartItemRow({
             size="icon-sm"
             onClick={() => onUpdateQuantity(item.productId, item.sku, 1)}
             className="rounded-none size-7"
-            aria-label={`Tăng số lượng ${item.name}`}
+            aria-label={`Tăng số lượng ${item.productName}`}
           >
             <Plus className="size-3" />
           </Button>
         </div>
       </TableCell>
 
-      {/* Subtotal - success/green color from globals.css */}
       <TableCell className="py-3">
         <span className="text-sm font-medium text-success whitespace-nowrap">
-          {(item.price * item.quantity).toLocaleString("vi-VN")} đ
+          {formatPrice(item.price * item.quantity)}
         </span>
       </TableCell>
 
-      {/* Actions */}
       <TableCell className="py-3 pr-4 w-10">
         <DropdownMenu>
           <DropdownMenuTrigger
-            aria-label={`Thêm tùy chọn cho ${item.name}`}
+            aria-label={`Thêm tùy chọn cho ${item.productName}`}
             className="text-muted-foreground hover:text-foreground transition-colors p-1"
           >
             <MoreHorizontal className="size-4" />

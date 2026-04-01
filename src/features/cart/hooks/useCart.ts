@@ -6,10 +6,24 @@ import { getAuthToken } from "@/actions/auth/getToken";
 import { cartService } from "../services/cart.service";
 import type {
   AddCartItemInput,
-  CartApiResponse,
+  CartItem,
   RemoveCartItemInput,
   UpdateCartItemInput,
 } from "../types/cart";
+
+type CartResponseData = CartItem[] | { items?: CartItem[] } | null | undefined;
+
+function extractCartItems(data: CartResponseData): CartItem[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+
+  if (typeof data === "object" && data !== null && "items" in data) {
+    const items = data.items;
+    return Array.isArray(items) ? items : [];
+  }
+
+  return [];
+}
 
 export const cartQueryKeys = {
   all: ["cart"] as const,
@@ -21,13 +35,22 @@ export function useCart() {
     queryKey: cartQueryKeys.cart(),
     queryFn: async () => {
       const token = await getAuthToken();
-      if (!token) return null;
+
+      if (!token) {
+        return [];
+      }
+
       const response = await cartService.getCart(token);
+
       if (!response.success) {
         throw new Error(response.message || "Không thể lấy giỏ hàng");
       }
-      return response.data ?? null;
+
+      return extractCartItems(response.data as CartResponseData);
     },
+    initialData: [],
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 
@@ -38,10 +61,14 @@ export function useAddToCart() {
     mutationFn: async (input: AddCartItemInput) => {
       const token = await getAuthToken();
       const response = await cartService.addToCart(input, token);
+
       if (!response.success) {
-        throw new Error(response.message || "Không thể thêm sản phẩm vào giỏ hàng");
+        throw new Error(
+          response.message || "Không thể thêm sản phẩm vào giỏ hàng",
+        );
       }
-      return response.data as CartApiResponse;
+
+      return extractCartItems(response.data as CartResponseData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartQueryKeys.cart() });
@@ -60,10 +87,14 @@ export function useUpdateCartItem() {
     mutationFn: async (input: UpdateCartItemInput) => {
       const token = await getAuthToken();
       const response = await cartService.updateCartItem(input, token);
+
       if (!response.success) {
-        throw new Error(response.message || "Không thể cập nhật sản phẩm trong giỏ hàng");
+        throw new Error(
+          response.message || "Không thể cập nhật sản phẩm trong giỏ hàng",
+        );
       }
-      return response.data as CartApiResponse;
+
+      return extractCartItems(response.data as CartResponseData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartQueryKeys.cart() });
@@ -82,10 +113,14 @@ export function useRemoveFromCart() {
     mutationFn: async (input: RemoveCartItemInput) => {
       const token = await getAuthToken();
       const response = await cartService.removeFromCart(input, token);
+
       if (!response.success) {
-        throw new Error(response.message || "Không thể xóa sản phẩm khỏi giỏ hàng");
+        throw new Error(
+          response.message || "Không thể xóa sản phẩm khỏi giỏ hàng",
+        );
       }
-      return response.data as CartApiResponse;
+
+      return extractCartItems(response.data as CartResponseData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: cartQueryKeys.cart() });
@@ -104,9 +139,11 @@ export function useClearCart() {
     mutationFn: async () => {
       const token = await getAuthToken();
       const response = await cartService.clearCart(token);
+
       if (!response.success) {
         throw new Error(response.message || "Không thể xóa giỏ hàng");
       }
+
       return response.data;
     },
     onSuccess: () => {
