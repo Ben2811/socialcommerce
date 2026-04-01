@@ -4,15 +4,20 @@ import { useState } from "react";
 import { MinusIcon, PlusIcon, ShoppingCartIcon, ZapIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChatButton } from "@/features/chat/components/ChatButton";
 
 interface ProductActionsProps {
   inStock: boolean;
   stockQuantity?: number;
+  sellerId?: string;
+  sellerName?: string;
 }
 
 export function ProductActions({
   inStock,
   stockQuantity,
+  sellerId,
+  sellerName,
 }: ProductActionsProps) {
   const [quantity, setQuantity] = useState(1);
 
@@ -62,6 +67,11 @@ export function ProductActions({
           Mua ngay
         </Button>
       </div>
+      {sellerId && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <ChatButton sellerId={sellerId} sellerName={sellerName} />
+        </div>
+      )}
     </div>
   );
 }

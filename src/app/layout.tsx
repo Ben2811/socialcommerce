@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { getSession } from "@/features/auth/lib/getSession";
 import AuthProvider from "@/features/auth/providers/AuthProvider";
 import { QueryProvider } from "@/providers/query-provider";
+import { SocketProvider, ChatWindow } from "@/features/chat";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -37,14 +38,17 @@ export default async function RootLayout({
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <AuthProvider initialUser={user}>
         <QueryProvider>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            <Navbar />
-            {children}
-            <Footer />
-            <Toaster />
-          </body>
+          <SocketProvider>
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
+              <Navbar />
+              {children}
+              <Footer />
+              <Toaster />
+              <ChatWindow />
+            </body>
+          </SocketProvider>
         </QueryProvider>
       </AuthProvider>
     </html>

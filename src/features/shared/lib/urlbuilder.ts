@@ -1,6 +1,5 @@
-import { Endpoints } from "../constants/endpoints";
 
-const serverURL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3000";
+const serverURL = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:8080";
 
 export class URLBuilder {
   private baseURL: string;

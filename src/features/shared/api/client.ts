@@ -13,7 +13,7 @@ export class APIError extends Error {
 }
 
 export class APIClient {
-  private buildHeaders(token?: string, extra?: HeadersInit): HeadersInit {
+  private buildHeaders(token?: string | null, extra?: HeadersInit): HeadersInit {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       ...(extra as Record<string, string>),
@@ -61,7 +61,7 @@ export class APIClient {
   private async executeRequest<T>(
     url: string,
     method: HTTP_METHOD,
-    token?: string,
+    token?: string | null,
     body?: unknown,
     options?: RequestInit,
   ): Promise<BaseResponse<T>> {
@@ -83,7 +83,7 @@ export class APIClient {
 
   async get<T>(
     url: string,
-    token?: string,
+    token?: string | null,
     options?: RequestInit,
   ): Promise<BaseResponse<T>> {
     return this.executeRequest<T>(url, "GET", token, undefined, options);
@@ -92,7 +92,7 @@ export class APIClient {
   async post<RequestBody, T>(
     url: string,
     body: RequestBody,
-    token?: string,
+    token?: string | null,
     options?: RequestInit,
   ): Promise<BaseResponse<T>> {
     return this.executeRequest<T>(url, "POST", token, body, options);
@@ -101,7 +101,7 @@ export class APIClient {
   async put<RequestBody, T>(
     url: string,
     body: RequestBody,
-    token?: string,
+    token?: string | null,
     options?: RequestInit,
   ): Promise<BaseResponse<T>> {
     return this.executeRequest<T>(url, "PUT", token, body, options);
@@ -110,7 +110,7 @@ export class APIClient {
   async patch<RequestBody, T>(
     url: string,
     body: RequestBody,
-    token?: string,
+    token?: string | null,
     options?: RequestInit,
   ): Promise<BaseResponse<T>> {
     return this.executeRequest<T>(url, "PATCH", token, body, options);
@@ -118,7 +118,7 @@ export class APIClient {
 
   async delete<T>(
     url: string,
-    token?: string,
+    token?: string | null,
     options?: RequestInit,
   ): Promise<BaseResponse<T>> {
     return this.executeRequest<T>(url, "DELETE", token, undefined, options);

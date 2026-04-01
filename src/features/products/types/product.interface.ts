@@ -7,6 +7,13 @@ export const VariantZodSchema = z.object({
   stock: z.number().min(0).optional(),
 });
 
+export const OwnerZodSchema = z.object({
+  _id: z.string().trim().min(1, "Owner ID is required"),
+  username: z.string().trim().min(1, "Owner name is required"),
+  imageUrls: z.array(z.string().url("Must be a valid URL")).optional(),
+  addresses: z.array(z.string().trim()).optional(),
+});
+
 export const ProductZodSchema = z.object({
   _id: z.string().optional(),
   name: z.string().trim().min(1, "Product name is required"),
@@ -22,7 +29,9 @@ export const ProductZodSchema = z.object({
     .array(z.string().url("Must be a valid URL"))
     .min(1, "Product must have at least one image URL"),
   inStock: z.boolean().default(true),
+  owner: OwnerZodSchema.optional(),
 });
 
 export type Variant = z.infer<typeof VariantZodSchema>;
 export type Product = z.infer<typeof ProductZodSchema>;
+export type ProductOwner = z.infer<typeof OwnerZodSchema>;

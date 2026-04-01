@@ -1,4 +1,4 @@
-        import { productService } from "@/features/products/services/products.service";
+import { productService } from "@/features/products/services/products.service";
 import { Product } from "@/features/products/types/product.interface";
 import { getSession } from "@/features/auth/lib/getSession";
 import {
@@ -14,6 +14,7 @@ import { ProductHeader } from "@/features/products/components/product-detail/Pro
 import { ProductPricing } from "@/features/products/components/product-detail/ProductPricing";
 import { ProductVariants } from "@/features/products/components/product-detail/ProductVariants";
 import { ProductActions } from "@/features/products/components/product-detail/ProductActions";
+
 import { ProductSpecs } from "@/features/products/components/product-detail/ProductSpecs";
 import { ProductPolicies } from "@/features/products/components/product-detail/ProductPolicies";
 import { ProductDescription } from "@/features/products/components/product-detail/ProductDescription";
@@ -96,6 +97,8 @@ export default async function ProductDetailsPage(
               <ProductActions
                 inStock={inStock}
                 stockQuantity={product?.stock}
+                sellerId={product?.owner?._id}
+                sellerName={product?.owner?.username}
               />
               <ProductPolicies />
             </CardContent>
@@ -112,8 +115,6 @@ export default async function ProductDetailsPage(
           currentUserId={session?._id}
           initialData={reviewsBundle}
         />
-
-
       </div>
     </main>
   );
