@@ -92,7 +92,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 <User className="w-3 h-3 text-accent-foreground" />
               </div>
               <span className="text-xs text-foreground font-medium truncate hover:underline">
-                {ownerId}
+                {product.owner?.username}
               </span>
             </Link>
             <span className="text-xs text-muted-foreground flex-shrink-0">
