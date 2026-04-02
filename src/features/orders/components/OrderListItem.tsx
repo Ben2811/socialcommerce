@@ -22,7 +22,7 @@ const statusConfig: Record<
 };
 
 function getOrderLinkId(order: Order): string {
-  return order.id || (order as { _id?: string })._id || "";
+  return order._id || "";
 }
 
 export function OrderListItem({ order }: OrderListItemProps) {

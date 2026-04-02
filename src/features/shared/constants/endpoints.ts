@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
   messages: "/api/messages",
   cart: "/api/cart",
   orders: "/api/orders",
+  payments: "/api/payments",
   admin: {
     users: "/api/admin/users",
     products: "/api/admin/products",

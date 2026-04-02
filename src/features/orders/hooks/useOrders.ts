@@ -109,7 +109,7 @@ export function useCreateOrder() {
     },
     onSuccess: (order) => {
       queryClient.invalidateQueries({ queryKey: orderQueryKeys.myLists() });
-      queryClient.setQueryData(orderQueryKeys.detail(order.id), order);
+      queryClient.setQueryData(orderQueryKeys.detail(order._id), order);
       toast.success("Order created successfully!");
     },
     onError: (error: Error) => {
@@ -145,7 +145,7 @@ export function useUpdateOrder() {
     },
     onSuccess: (order) => {
       queryClient.invalidateQueries({ queryKey: orderQueryKeys.myLists() });
-      queryClient.setQueryData(orderQueryKeys.detail(order.id), order);
+      queryClient.setQueryData(orderQueryKeys.detail(order._id), order);
       toast.success("Order updated successfully!");
     },
     onError: (error: Error) => {
@@ -175,7 +175,7 @@ export function useCancelOrder() {
     },
     onSuccess: (order) => {
       queryClient.invalidateQueries({ queryKey: orderQueryKeys.myLists() });
-      queryClient.setQueryData(orderQueryKeys.detail(order.id), order);
+      queryClient.setQueryData(orderQueryKeys.detail(order._id), order);
       toast.success("Order cancelled successfully!");
     },
     onError: (error: Error) => {

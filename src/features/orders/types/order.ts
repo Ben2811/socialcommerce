@@ -15,7 +15,7 @@ export interface ShippingAddress {
 }
 
 export interface Order {
-  id: string;
+  _id: string;
   userId: string;
   items: OrderItem[];
   shippingAddress: ShippingAddress;

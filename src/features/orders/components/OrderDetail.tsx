@@ -85,7 +85,7 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h2 className="mb-2 text-2xl font-bold text-foreground">
-              Đơn hàng #{order.id}
+              Đơn hàng #{order._id}
             </h2>
             <p className="text-sm text-muted-foreground">
               Đặt hàng vào {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}
@@ -125,7 +125,7 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
           {canCancel && (
             <Button
               variant="destructive"
-              onClick={() => cancelOrder(order.id)}
+              onClick={() => cancelOrder(order._id)}
               disabled={isCancelling}
             >
               {isCancelling ? "Đang hủy..." : "Hủy đơn hàng"}

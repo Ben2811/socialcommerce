@@ -51,7 +51,7 @@ export function OrdersList({ pageSize = 10 }: OrdersListProps) {
     <div className="space-y-4">
       <div className="grid gap-4">
         {data.items.map((order) => (
-          <OrderListItem key={order.id} order={order} />
+          <OrderListItem key={order._id} order={order} />
         ))}
       </div>
 
