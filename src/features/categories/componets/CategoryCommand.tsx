@@ -19,7 +19,7 @@ interface CategoryCommandProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
-  onSelectCategory?: (category: Category) => void;
+  onSelectCategory?: (category: Category | null) => void;
 }
 
 export function CategoryCommand({
@@ -49,7 +49,7 @@ export function CategoryCommand({
   );
 
   const handleSelectCategory = useCallback(
-    (category: Category) => {
+    (category: Category | null) => {
       onSelectCategory?.(category);
       onOpenChange(false);
     },
@@ -67,6 +67,15 @@ export function CategoryCommand({
           <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
             No categories found.
           </CommandEmpty>
+
+          <CommandGroup>
+            <CommandItem
+              value=""
+              onSelect={() => handleSelectCategory(null)}
+            >
+              Tất cả danh mục
+            </CommandItem>
+          </CommandGroup>
 
           {parentCategories && parentCategories.length > 0 ? (
             parentCategories.map((category) => {
