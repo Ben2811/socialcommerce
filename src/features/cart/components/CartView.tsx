@@ -5,6 +5,7 @@ import { CartHeader } from "./CartHeader";
 import { CartTable } from "./CartTable";
 import { CartCheckoutBar } from "./CartCheckoutBar";
 import { EmptyCart } from "./EmptyCart";
+import { CheckoutDialog } from "./CheckoutDialog";
 import { useCart, useUpdateCartItem, useRemoveFromCart } from "../hooks/useCart";
 import type { CartItem } from "../types/cart";
 
@@ -19,11 +20,17 @@ export function CartView() {
   const removeFromCart = useRemoveFromCart();
 
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const allItemKeys = useMemo(() => items.map(getItemKey), [items]);
 
   const allSelected =
     allItemKeys.length > 0 && allItemKeys.every((key) => selectedKeys.has(key));
+
+  const selectedItems = useMemo(
+    () => items.filter((item) => selectedKeys.has(getItemKey(item))),
+    [items, selectedKeys],
+  );
 
   const handleToggleSelectAll = useCallback((allKeys: string[]) => {
     setSelectedKeys((prev) => {
@@ -76,22 +83,24 @@ export function CartView() {
   );
 
   const handleCheckout = useCallback(() => {
-    alert(`Đặt hàng ${selectedKeys.size} sản phẩm đã chọn`);
-  }, [selectedKeys]);
+    setIsCheckoutOpen(true);
+  }, []);
 
-  const { selectedCount, totalAmount } = useMemo(() => {
-    const selectedItems = items.filter((item) =>
-      selectedKeys.has(getItemKey(item)),
-    );
+  const handleCheckoutSuccess = useCallback(() => {
+    setSelectedKeys(new Set());
+    setIsCheckoutOpen(false);
+  }, []);
 
-    return {
-      selectedCount: selectedItems.reduce((sum, item) => sum + item.quantity, 0),
-      totalAmount: selectedItems.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0,
-      ),
-    };
-  }, [items, selectedKeys]);
+  const selectedCount = useMemo(
+    () => selectedItems.reduce((sum, item) => sum + item.quantity, 0),
+    [selectedItems],
+  );
+
+  const totalAmount = useMemo(
+    () =>
+      selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [selectedItems],
+  );
 
   if (query.isLoading) {
     return (
@@ -158,6 +167,13 @@ export function CartView() {
           />
         </div>
       </div>
+
+      <CheckoutDialog
+        open={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        onSuccess={handleCheckoutSuccess}
+        selectedItems={selectedItems}
+      />
     </div>
   );
-} 
+}

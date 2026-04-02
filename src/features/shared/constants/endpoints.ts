@@ -7,6 +7,7 @@ export const API_ENDPOINTS = {
   reviews: "/api/reviews",
   messages: "/api/messages",
   cart: "/api/cart",
+  orders: "/api/orders",
   admin: {
     users: "/api/admin/users",
     products: "/api/admin/products",

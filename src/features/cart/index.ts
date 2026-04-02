@@ -1,11 +1,10 @@
-// Cart feature exports
-
 export { CartHeader } from "./components/CartHeader";
 export { EmptyCart } from "./components/EmptyCart";
 export { CartView } from "./components/CartView";
 export { CartItemRow } from "./components/CartItemRow";
 export { CartTable } from "./components/CartTable";
 export { CartCheckoutBar } from "./components/CartCheckoutBar";
+export { CheckoutDialog } from "./components/CheckoutDialog";
 
 export type {
   CartItem,
@@ -22,10 +21,7 @@ export {
   calculateOrderSummary,
 } from "./utils/cartCalculations";
 
-export {
-  cartService,
-  CartService,
-} from "./services/cart.service";
+export { cartService, CartService } from "./services/cart.service";
 
 export {
   useCart,
