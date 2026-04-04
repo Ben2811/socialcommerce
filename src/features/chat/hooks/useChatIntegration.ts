@@ -10,7 +10,9 @@ import {
   useMarkMessageAsRead,
 } from "./useMessageAPI";
 import { useMessages } from "./useMessages";
+import { toDateOrEpoch } from "../utils/date-utils";
 import type { ConversationMessage } from "../services/message.service";
+import type { Message } from "../types";
 
 interface UseChatIntegrationOptions {
   otherUserId?: string;
@@ -19,21 +21,16 @@ interface UseChatIntegrationOptions {
   skip?: number;
 }
 
-interface ClientMessage {
-  messageId: string;
-  senderId: string;
-  senderUsername?: string;
-  content: string;
-  timestamp: Date;
-}
-
-function toClientMessage(message: ConversationMessage): ClientMessage {
+function toClientMessage(message: ConversationMessage): Message {
+  const timestamp = toDateOrEpoch(message.createdAt);
   return {
+    _id: message._id,
     messageId: message._id,
     senderId: message.senderId._id,
     senderUsername: message.senderId.username,
     content: message.content,
-    timestamp: message.createdAt,
+    timestamp,
+    createdAt: timestamp,
   };
 }
 
@@ -44,7 +41,6 @@ export function useChatIntegration(options: UseChatIntegrationOptions = {}) {
   const { selectedUserId } = useChatUIStore();
   const { addMessage, setMessageError } = useWebSocketStore();
 
-  // Ensure targetUserId is always a valid string (not an object)
   const rawTargetUserId = otherUserId || selectedUserId || "";
   const targetUserId = typeof rawTargetUserId === "string" ? rawTargetUserId : "";
 

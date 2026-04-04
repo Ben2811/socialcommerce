@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/features/shared/utils/cn";
@@ -12,6 +12,7 @@ import { useWebSocketStore } from "../stores/chatStore";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { EmptyThreadState } from "./EmptyThreadState";
+import { toDateOrEpoch } from "../utils/date-utils";
 import { Loader2, AlertCircle, ChevronUp } from "lucide-react";
 import type { ConversationMessage } from "../services/schemas";
 
@@ -20,13 +21,18 @@ interface MessageThreadProps {
   className?: string;
 }
 
+function isObjectId(value: string): boolean {
+  return /^[a-f\d]{24}$/i.test(value);
+}
+
 export function MessageThread({ userId, className }: MessageThreadProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const previousMessageCountRef = useRef(0);
+  const previousLastMessageKeyRef = useRef<string | null>(null);
+  const markedAsReadRef = useRef<Set<string>>(new Set());
 
   const { user } = useAuth();
-  const { messageError } = useWebSocketStore();
+  const { messageError, messages: realtimeMessages } = useWebSocketStore();
 
   // Get target user ID and basic functions
   const { targetUserId, sendMessage, markAsRead } = useChatIntegration({
@@ -47,6 +53,96 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
     enabled: !!targetUserId,
   });
 
+  const mergedMessages = useMemo<ConversationMessage[]>(() => {
+    if (!targetUserId) {
+      return [];
+    }
+
+    const liveMessages = realtimeMessages.get(targetUserId) ?? [];
+
+    const normalizedLive: ConversationMessage[] = liveMessages.map(
+      (message, index) => {
+        const dynamicMessage = message as unknown as Record<string, unknown>;
+        const senderId = String(dynamicMessage.senderId ?? "");
+        const senderUsername =
+          typeof dynamicMessage.senderUsername === "string"
+            ? dynamicMessage.senderUsername
+            : senderId === user?._id
+              ? (user?.username ?? "Bạn")
+              : "Người dùng";
+
+        const createdAt = toDateOrEpoch(
+          dynamicMessage.createdAt ??
+            dynamicMessage.timestamp ??
+            dynamicMessage.updatedAt,
+        );
+        const messageId =
+          typeof dynamicMessage._id === "string"
+            ? dynamicMessage._id
+            : typeof dynamicMessage.messageId === "string"
+              ? dynamicMessage.messageId
+              : `temp-${senderId}-${createdAt.getTime()}-${index}`;
+
+        const recipientId =
+          typeof dynamicMessage.recipientId === "string"
+            ? dynamicMessage.recipientId
+            : senderId === user?._id
+              ? targetUserId
+              : (user?._id ?? "");
+
+        return {
+          _id: messageId,
+          senderId: {
+            _id: senderId,
+            username: senderUsername,
+          },
+          recipientId: {
+            _id: recipientId,
+            username: recipientId === user?._id ? (user?.username ?? "Bạn") : "Người dùng",
+          },
+          content:
+            typeof dynamicMessage.content === "string"
+              ? dynamicMessage.content
+              : "",
+          isRead:
+            typeof dynamicMessage.isRead === "boolean"
+              ? dynamicMessage.isRead
+              : senderId === user?._id,
+          createdAt,
+          updatedAt: toDateOrEpoch(dynamicMessage.updatedAt ?? createdAt),
+        };
+      },
+    );
+
+    const merged = [...messages, ...normalizedLive];
+    const deduped = new Map<string, ConversationMessage>();
+
+    merged.forEach((message, index) => {
+      const normalized: ConversationMessage = {
+        ...message,
+        createdAt: toDateOrEpoch(message.createdAt),
+        updatedAt: toDateOrEpoch(message.updatedAt ?? message.createdAt),
+      };
+
+      const fallbackKey = `${normalized.senderId._id}-${normalized.content}-${normalized.createdAt.getTime()}-${index}`;
+      const key = normalized._id || fallbackKey;
+      const existing = deduped.get(key);
+
+      if (!existing) {
+        deduped.set(key, normalized);
+        return;
+      }
+
+      if (normalized.updatedAt.getTime() >= existing.updatedAt.getTime()) {
+        deduped.set(key, normalized);
+      }
+    });
+
+    return Array.from(deduped.values()).sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+  }, [messages, realtimeMessages, targetUserId, user?._id, user?.username]);
+
   // Detect when user scrolls to top
   const isAtTop = useScrollToTop(scrollRef, {
     threshold: 100,
@@ -60,24 +156,45 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
     }
   }, [isAtTop, hasNextPage, isFetching, fetchNextPage]);
 
-  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messages.length > previousMessageCountRef.current) {
-      previousMessageCountRef.current = messages.length;
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 0);
+    markedAsReadRef.current.clear();
+    previousLastMessageKeyRef.current = null;
+  }, [targetUserId]);
+
+  // Auto-scroll to bottom only when latest message changes.
+  // Loading older pages should keep current viewport stable.
+  useEffect(() => {
+    if (!mergedMessages.length) {
+      return;
     }
-  }, [messages.length]);
+
+    const latest = mergedMessages[mergedMessages.length - 1];
+    const latestKey = `${latest._id}-${latest.createdAt.getTime()}`;
+
+    if (previousLastMessageKeyRef.current === latestKey) {
+      return;
+    }
+
+    previousLastMessageKeyRef.current = latestKey;
+    setTimeout(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 0);
+  }, [mergedMessages]);
 
   // Mark incoming messages as read
   useEffect(() => {
-    messages.forEach((msg: ConversationMessage) => {
-      if (msg.senderId._id !== user?._id && !msg.isRead) {
+    mergedMessages.forEach((msg: ConversationMessage) => {
+      if (
+        msg.senderId._id !== user?._id &&
+        !msg.isRead &&
+        isObjectId(msg._id) &&
+        !markedAsReadRef.current.has(msg._id)
+      ) {
+        markedAsReadRef.current.add(msg._id);
         markAsRead(msg._id);
       }
     });
-  }, [messages, user?._id, markAsRead]);
+  }, [mergedMessages, user?._id, markAsRead]);
 
   const canChat = !!targetUserId && !!user;
   const hasError = error || messageError;
@@ -94,11 +211,11 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
     <div className={cn("flex flex-col", className)}>
       {/* Messages Container */}
       <ScrollArea ref={scrollRef} className="flex-1 px-4 py-3 overflow-y-auto">
-        {isLoading && messages.length === 0 ? (
+        {isLoading && mergedMessages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-        ) : hasError && messages.length === 0 ? (
+        ) : hasError && mergedMessages.length === 0 ? (
           <div className="flex h-full items-center justify-center px-4">
             <div className="flex items-center gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               <AlertCircle className="h-4 w-4 shrink-0" />
@@ -107,7 +224,7 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               </span>
             </div>
           </div>
-        ) : messages.length === 0 ? (
+        ) : mergedMessages.length === 0 ? (
           <div className="flex h-full items-center justify-center py-8">
             <p className="text-xs text-muted-foreground">
               Hãy bắt đầu cuộc trò chuyện!
@@ -126,7 +243,7 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
             )}
 
             {/* Message list */}
-            {messages.map((msg: ConversationMessage) => (
+            {mergedMessages.map((msg: ConversationMessage) => (
               <MessageBubble
                 key={msg._id}
                 message={msg}
@@ -134,7 +251,6 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               />
             ))}
 
-            {/* Load more older messages button */}
             {hasNextPage && !isFetching && (
               <button
                 onClick={() => fetchNextPage()}
@@ -145,15 +261,12 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               </button>
             )}
 
-            {/* Scroll anchor */}
             <div ref={bottomRef} />
           </div>
         )}
       </ScrollArea>
 
       <Separator />
-
-      {/* Message Input */}
       <MessageInput onSend={sendMessage} disabled={!canChat} />
     </div>
   );

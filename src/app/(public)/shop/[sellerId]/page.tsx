@@ -1,6 +1,7 @@
 import { ProductList } from "@/features/products";
 import { productService } from "@/features/products/services/products.service";
 import { userService } from "@/features/profile/services/users.service";
+import { ChatButton } from "@/features/chat/components/ChatButton";
 import { User as UserIcon, Store, Package, MapPin, Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
@@ -105,9 +106,12 @@ export default async function SellerShopPage(
             </div>
 
             <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-              <button className="flex-1 md:flex-none px-6 py-2.5 bg-white border border-zinc-200 hover:bg-zinc-50 font-medium rounded-xl transition text-zinc-700 shadow-sm">
-                Chat ngay
-              </button>
+              <ChatButton
+                sellerId={sellerId}
+                sellerName={seller.username}
+                label="Chat ngay"
+                className="md:flex-none px-6 py-2.5 border-zinc-200 hover:bg-zinc-50 text-zinc-700 shadow-sm"
+              />
             </div>
           </div>
         </div>

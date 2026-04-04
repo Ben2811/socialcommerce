@@ -29,7 +29,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/features/auth/providers/AuthProvider";
-import { sellerManagementItems, sellerSupportLink, sellerSettingsLink } from "../constants/sidebar-menu";
+import { sellerManagementItems, sellerSettingsLink } from "../constants/sidebar-menu";
 
 export function SellerSidebar() {
   const router = useRouter();
@@ -88,22 +88,6 @@ export function SellerSidebar() {
               </SidebarMenu>
             </CollapsibleContent>
           </Collapsible>
-        </SidebarGroup>
-
-        <SidebarGroup className="p-0 pt-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => router.push(sellerSupportLink.href)}
-                className="flex w-full items-center justify-between px-0 py-1.5 text-[13px] font-medium text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-transparent"
-              >
-                <span className="flex items-center gap-2">
-                  <sellerSupportLink.icon className="size-4" />
-                  <span>{sellerSupportLink.label}</span>
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
         </SidebarGroup>
 
         <SidebarGroup className="p-0 pt-1">

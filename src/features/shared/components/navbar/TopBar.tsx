@@ -16,7 +16,7 @@ export function TopBar() {
           </Link>
           <div className="h-3 w-[1px] bg-border" />
           <Link
-            href="/seller"
+            href="/seller/products"
             className="transition-colors hover:text-primary"
           >
             Kênh buôn bán

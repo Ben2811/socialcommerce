@@ -9,6 +9,7 @@ import { useAuth } from "@/features/auth/providers/AuthProvider";
 import { useGetConversations } from "../hooks/useMessageAPI";
 import { useChatUIStore } from "../stores/chatUIStore";
 import { useWebSocketStore } from "../stores/chatStore";
+import { toDateOrUndefined } from "../utils/date-utils";
 import { ConversationItem } from "./ConversationItem";
 import type { ConversationPreview } from "../hooks/useConversations";
 import type { ConversationSummary } from "../services/schemas";
@@ -67,6 +68,10 @@ export function ConversationList({ className }: ConversationListProps) {
         localMessages.length > 0
           ? localMessages[localMessages.length - 1]
           : undefined;
+      const lastLocalMessageAt = toDateOrUndefined(
+        (lastLocalMessage as Record<string, unknown> | undefined)?.timestamp ??
+          (lastLocalMessage as Record<string, unknown> | undefined)?.createdAt,
+      );
 
       const existing = convMap.get(otherUserId);
       
@@ -81,7 +86,7 @@ export function ConversationList({ className }: ConversationListProps) {
         userStatuses.get(otherUserId)?.username ??
         "Người dùng";
 
-      const updatedAt = conv.updatedAt ? new Date(conv.updatedAt) : undefined;
+      const updatedAt = toDateOrUndefined(conv.updatedAt);
 
       // Get the last message text from the response object
       const lastMessageText = conv.lastMessage?.content;
@@ -90,16 +95,20 @@ export function ConversationList({ className }: ConversationListProps) {
         userId: otherUserId,
         username,
         lastMessage: lastLocalMessage?.content ?? lastMessageText ?? undefined,
-        lastMessageAt: lastLocalMessage?.timestamp ?? updatedAt,
+        lastMessageAt: lastLocalMessageAt ?? updatedAt,
         unreadCount: Math.max(0, conv.unreadCount ?? 0),
         isOnline: onlineUsers.has(otherUserId),
       });
     });
 
     const list = Array.from(convMap.values()).sort((a, b) => {
-      if (!a.lastMessageAt) return 1;
-      if (!b.lastMessageAt) return -1;
-      return b.lastMessageAt.getTime() - a.lastMessageAt.getTime();
+      const aTime = toDateOrUndefined(a.lastMessageAt)?.getTime();
+      const bTime = toDateOrUndefined(b.lastMessageAt)?.getTime();
+
+      if (aTime == null) return 1;
+      if (bTime == null) return -1;
+
+      return bTime - aTime;
     });
 
     if (!search.trim()) {

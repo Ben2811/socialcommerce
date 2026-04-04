@@ -6,6 +6,7 @@ import { tokenType } from "@/features/shared/lib/cookie";
 export enum UserRole {
   USER = "user",
   ADMIN = "admin",
+  SELLER = "seller",
 }
 
 interface JWTPayload {
@@ -20,7 +21,7 @@ function checkRolePermission(pathname: string, userRole: UserRole): boolean {
   if (pathname.startsWith("/admin")) {
     return userRole === UserRole.ADMIN;
   }  if (pathname.startsWith("/profile")) {
-    return [UserRole.USER, UserRole.ADMIN].includes(userRole);
+    return [UserRole.USER, UserRole.ADMIN, UserRole.SELLER].includes(userRole);
   }  return true;
 }
 
@@ -52,7 +53,7 @@ export function proxy(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-user-id", decoded.sub);
     requestHeaders.set("x-user-role", decoded.role);
-    requestHeaders.set("x-username", decoded.username);
+    requestHeaders.set("x-username", btoa(unescape(encodeURIComponent(decoded.username))));
 
     return NextResponse.next({
       request: {
