@@ -16,9 +16,9 @@ export const managementItems = [
 ];
 
 export const contentItems = [
-  { label: "About", href: "/dashboard/about", icon: LayoutGrid },
-  { label: "Quy định và chính sách", href: "/dashboard/policies", icon: ShieldCheck },
-  { label: "Quảng cáo", href: "/dashboard/ads", icon: Megaphone },
+  { label: "About", href: "/admin/about", icon: LayoutGrid },
+  { label: "Quy định và chính sách", href: "/admin/policies", icon: ShieldCheck },
+  { label: "Quảng cáo", href: "/admin/ads", icon: Megaphone },
 ];
 
 export const supportLink = {
