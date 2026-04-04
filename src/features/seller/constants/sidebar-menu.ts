@@ -4,7 +4,6 @@ import {
   Receipt,
   Percent,
   Megaphone,
-  HelpCircle,
   Settings,
 } from "lucide-react";
 
@@ -35,12 +34,6 @@ export const sellerManagementItems = [
     icon: Megaphone,
   },
 ];
-
-export const sellerSupportLink = {
-  label: "Hỗ trợ",
-  href: "/seller/support",
-  icon: HelpCircle,
-};
 
 export const sellerSettingsLink = {
   label: "Cài đặt",

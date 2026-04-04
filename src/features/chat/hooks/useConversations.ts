@@ -12,6 +12,21 @@ export interface ConversationPreview {
   isOnline: boolean;
 }
 
+function toDate(value: unknown): Date | undefined {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+}
+
 export function useConversations(search: string = "") {
   const { messages, onlineUsers, userStatuses } = useWebSocketStore();
   const { openedConversations, selectedUserId, readTimestamps } =
@@ -41,26 +56,35 @@ export function useConversations(search: string = "") {
           : msgs.filter(
               (m) =>
                 m.senderId === userId &&
-                (!readAt || (m.timestamp && m.timestamp > readAt))
+                (!readAt ||
+                  (toDate(m.timestamp ?? m.createdAt)?.getTime() ?? 0) >
+                    readAt.getTime())
             ).length;
 
       const existing = convMap.get(userId);
       const senderUsername = lastMsg.senderUsername || userStatuses.get(userId)?.username || "Unknown User";
+      const lastMessageAt = toDate(
+        lastMsg.timestamp ?? lastMsg.createdAt,
+      );
       
       convMap.set(userId, {
         userId,
         username: existing?.username ?? senderUsername,
         lastMessage: lastMsg.content,
-        lastMessageAt: lastMsg.timestamp,
+        lastMessageAt,
         unreadCount,
         isOnline: onlineUsers.has(userId),
       });
     });
 
     const list = Array.from(convMap.values()).sort((a, b) => {
-      if (!a.lastMessageAt) return 1;
-      if (!b.lastMessageAt) return -1;
-      return b.lastMessageAt.getTime() - a.lastMessageAt.getTime();
+      const aTime = toDate(a.lastMessageAt)?.getTime();
+      const bTime = toDate(b.lastMessageAt)?.getTime();
+
+      if (aTime == null) return 1;
+      if (bTime == null) return -1;
+
+      return bTime - aTime;
     });
 
     if (!search.trim()) return list;

@@ -27,13 +27,28 @@ interface ClientMessage {
   timestamp: Date;
 }
 
+function toDate(value: unknown): Date {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return new Date();
+}
+
 function toClientMessage(message: ConversationMessage): ClientMessage {
   return {
     messageId: message._id,
     senderId: message.senderId._id,
     senderUsername: message.senderId.username,
     content: message.content,
-    timestamp: message.createdAt,
+    timestamp: toDate(message.createdAt),
   };
 }
 
