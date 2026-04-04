@@ -24,9 +24,9 @@ function getItemsPerRow(width: number) {
 }
 
 function getEstimatedRowHeight(itemsPerRow: number) {
-  if (itemsPerRow === 2) return 480;
-  if (itemsPerRow === 3) return 440;
-  return 420;
+  if (itemsPerRow === 2) return 500;
+  if (itemsPerRow === 3) return 500;
+  return 500;
 }
 
 export function ProductList({ filter, initialProductsPage }: ProductListProps = {}) {
