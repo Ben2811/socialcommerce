@@ -12,27 +12,13 @@ import { useWebSocketStore } from "../stores/chatStore";
 import { MessageBubble } from "./MessageBubble";
 import { MessageInput } from "./MessageInput";
 import { EmptyThreadState } from "./EmptyThreadState";
+import { toDateOrEpoch } from "../utils/date-utils";
 import { Loader2, AlertCircle, ChevronUp } from "lucide-react";
 import type { ConversationMessage } from "../services/schemas";
 
 interface MessageThreadProps {
   userId: string | null;
   className?: string;
-}
-
-function toDate(value: unknown): Date {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
-
-  if (typeof value === "string" || typeof value === "number") {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  }
-
-  return new Date();
 }
 
 function isObjectId(value: string): boolean {
@@ -85,7 +71,7 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               ? (user?.username ?? "Bạn")
               : "Người dùng";
 
-        const createdAt = toDate(
+        const createdAt = toDateOrEpoch(
           dynamicMessage.createdAt ??
             dynamicMessage.timestamp ??
             dynamicMessage.updatedAt,
@@ -123,7 +109,7 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               ? dynamicMessage.isRead
               : senderId === user?._id,
           createdAt,
-          updatedAt: toDate(dynamicMessage.updatedAt ?? createdAt),
+          updatedAt: toDateOrEpoch(dynamicMessage.updatedAt ?? createdAt),
         };
       },
     );
@@ -134,8 +120,8 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
     merged.forEach((message, index) => {
       const normalized: ConversationMessage = {
         ...message,
-        createdAt: toDate(message.createdAt),
-        updatedAt: toDate(message.updatedAt ?? message.createdAt),
+        createdAt: toDateOrEpoch(message.createdAt),
+        updatedAt: toDateOrEpoch(message.updatedAt ?? message.createdAt),
       };
 
       const fallbackKey = `${normalized.senderId._id}-${normalized.content}-${normalized.createdAt.getTime()}-${index}`;
@@ -265,7 +251,6 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               />
             ))}
 
-            {/* Load more older messages button */}
             {hasNextPage && !isFetching && (
               <button
                 onClick={() => fetchNextPage()}
@@ -276,15 +261,12 @@ export function MessageThread({ userId, className }: MessageThreadProps) {
               </button>
             )}
 
-            {/* Scroll anchor */}
             <div ref={bottomRef} />
           </div>
         )}
       </ScrollArea>
 
       <Separator />
-
-      {/* Message Input */}
       <MessageInput onSend={sendMessage} disabled={!canChat} />
     </div>
   );

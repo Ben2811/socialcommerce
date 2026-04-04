@@ -9,27 +9,13 @@ import { useAuth } from "@/features/auth/providers/AuthProvider";
 import { useGetConversations } from "../hooks/useMessageAPI";
 import { useChatUIStore } from "../stores/chatUIStore";
 import { useWebSocketStore } from "../stores/chatStore";
+import { toDateOrUndefined } from "../utils/date-utils";
 import { ConversationItem } from "./ConversationItem";
 import type { ConversationPreview } from "../hooks/useConversations";
 import type { ConversationSummary } from "../services/schemas";
 
 interface ConversationListProps {
   className?: string;
-}
-
-function toDate(value: unknown): Date | undefined {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
-
-  if (typeof value === "string" || typeof value === "number") {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  }
-
-  return undefined;
 }
 
 export function ConversationList({ className }: ConversationListProps) {
@@ -82,7 +68,7 @@ export function ConversationList({ className }: ConversationListProps) {
         localMessages.length > 0
           ? localMessages[localMessages.length - 1]
           : undefined;
-      const lastLocalMessageAt = toDate(
+      const lastLocalMessageAt = toDateOrUndefined(
         (lastLocalMessage as Record<string, unknown> | undefined)?.timestamp ??
           (lastLocalMessage as Record<string, unknown> | undefined)?.createdAt,
       );
@@ -100,7 +86,7 @@ export function ConversationList({ className }: ConversationListProps) {
         userStatuses.get(otherUserId)?.username ??
         "Người dùng";
 
-      const updatedAt = toDate(conv.updatedAt);
+      const updatedAt = toDateOrUndefined(conv.updatedAt);
 
       // Get the last message text from the response object
       const lastMessageText = conv.lastMessage?.content;
@@ -116,8 +102,8 @@ export function ConversationList({ className }: ConversationListProps) {
     });
 
     const list = Array.from(convMap.values()).sort((a, b) => {
-      const aTime = toDate(a.lastMessageAt)?.getTime();
-      const bTime = toDate(b.lastMessageAt)?.getTime();
+      const aTime = toDateOrUndefined(a.lastMessageAt)?.getTime();
+      const bTime = toDateOrUndefined(b.lastMessageAt)?.getTime();
 
       if (aTime == null) return 1;
       if (bTime == null) return -1;

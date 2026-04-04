@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { useWebSocketStore } from "../stores/chatStore";
 import { useChatUIStore } from "../stores/chatUIStore";
+import { toDateOrUndefined } from "../utils/date-utils";
 
 export interface ConversationPreview {
   userId: string;
@@ -10,21 +11,6 @@ export interface ConversationPreview {
   lastMessageAt?: Date;
   unreadCount: number;
   isOnline: boolean;
-}
-
-function toDate(value: unknown): Date | undefined {
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value;
-  }
-
-  if (typeof value === "string" || typeof value === "number") {
-    const parsed = new Date(value);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  }
-
-  return undefined;
 }
 
 export function useConversations(search: string = "") {
@@ -57,13 +43,13 @@ export function useConversations(search: string = "") {
               (m) =>
                 m.senderId === userId &&
                 (!readAt ||
-                  (toDate(m.timestamp ?? m.createdAt)?.getTime() ?? 0) >
+                  (toDateOrUndefined(m.timestamp ?? m.createdAt)?.getTime() ?? 0) >
                     readAt.getTime())
             ).length;
 
       const existing = convMap.get(userId);
       const senderUsername = lastMsg.senderUsername || userStatuses.get(userId)?.username || "Unknown User";
-      const lastMessageAt = toDate(
+      const lastMessageAt = toDateOrUndefined(
         lastMsg.timestamp ?? lastMsg.createdAt,
       );
       
@@ -78,8 +64,8 @@ export function useConversations(search: string = "") {
     });
 
     const list = Array.from(convMap.values()).sort((a, b) => {
-      const aTime = toDate(a.lastMessageAt)?.getTime();
-      const bTime = toDate(b.lastMessageAt)?.getTime();
+      const aTime = toDateOrUndefined(a.lastMessageAt)?.getTime();
+      const bTime = toDateOrUndefined(b.lastMessageAt)?.getTime();
 
       if (aTime == null) return 1;
       if (bTime == null) return -1;
