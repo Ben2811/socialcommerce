@@ -53,7 +53,7 @@ export function proxy(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-user-id", decoded.sub);
     requestHeaders.set("x-user-role", decoded.role);
-    requestHeaders.set("x-username", Buffer.from(decoded.username).toString('base64'));
+    requestHeaders.set("x-username", btoa(unescape(encodeURIComponent(decoded.username))));
 
     return NextResponse.next({
       request: {
