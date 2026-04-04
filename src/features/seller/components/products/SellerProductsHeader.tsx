@@ -3,16 +3,24 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { SellerProductStatus } from "@/features/seller/types/product";
 
 interface SellerProductsHeaderProps {
   totalItems: number;
+  statusFilter: "all" | SellerProductStatus;
+  searchTerm: string;
   onAddProduct: () => void;
 }
 
 export function SellerProductsHeader({
   totalItems,
+  statusFilter,
+  searchTerm,
   onAddProduct,
 }: SellerProductsHeaderProps) {
+  const hasActiveFilters =
+    statusFilter !== "all" || searchTerm.trim().length > 0;
+
   return (
     <section className="space-y-4">
       <div className="space-y-2">
@@ -26,7 +34,9 @@ export function SellerProductsHeader({
           <div>
             <CardHeader className="pb-3 px-0">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Tổng sản phẩm của bạn
+                {hasActiveFilters
+                  ? "Sản phẩm theo bộ lọc hiện tại"
+                  : "Tổng sản phẩm của bạn"}
               </CardTitle>
             </CardHeader>
             <CardContent className="px-0">
@@ -34,7 +44,9 @@ export function SellerProductsHeader({
                 {totalItems.toLocaleString("vi-VN")}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Bao gồm cả chờ duyệt và đã duyệt
+                {hasActiveFilters
+                  ? "Kết quả đang hiển thị theo trạng thái và từ khóa tìm kiếm"
+                  : "Bao gồm cả chờ duyệt và đã duyệt"}
               </p>
             </CardContent>
           </div>

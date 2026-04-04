@@ -29,11 +29,12 @@ export async function getSellerProducts(
   page = 1,
   limit = 10,
   status?: SellerProductStatus,
+  search?: string,
 ): Promise<BaseResponse<PaginationResponse<SellerProduct>>> {
   const token = await getToken();
   if (!token) return unauthorizedResponse<PaginationResponse<SellerProduct>>();
 
-  return sellerProductsService.getProducts({ page, limit, status }, token);
+  return sellerProductsService.getProducts({ page, limit, status, search }, token);
 }
 
 export async function createSellerProduct(

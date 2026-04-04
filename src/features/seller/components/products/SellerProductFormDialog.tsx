@@ -23,6 +23,7 @@ import { categoriesService } from "@/features/categories/services/categories.ser
 import type { Category } from "@/features/categories/types";
 import {
   createSellerProductSchema,
+  updateSellerProductSchema,
   type CreateSellerProductInput,
   type SellerProduct,
   type UpdateSellerProductInput,
@@ -31,6 +32,7 @@ import { uploadSellerProductImage } from "@/actions/seller/products";
 
 type VariantFormState = {
   sku: string;
+  attributes?: Record<string, string>;
   price: string;
   stock: string;
 };
@@ -57,6 +59,7 @@ function createInitialFormState(product?: SellerProduct | null): ProductFormStat
     product?.variants && product.variants.length > 0
       ? product.variants.map((variant) => ({
           sku: variant.sku ?? "",
+          attributes: variant.attributes,
           price: variant.price !== undefined ? String(variant.price) : "",
           stock: variant.stock !== undefined ? String(variant.stock) : "",
         }))
@@ -94,7 +97,7 @@ export function SellerProductFormDialog({
 }: SellerProductFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="scrollbar-hide max-h-[92vh] overflow-y-auto sm:max-w-3xl">
         {open && (
           <SellerProductFormInner
             key={editingProduct?._id ?? "new"}
@@ -236,6 +239,8 @@ function SellerProductFormInner({
   };
 
   const handleSubmit = async () => {
+    setError(null);
+
     const payloadCandidate = {
       name: formState.name,
       description: formState.description.trim() || undefined,
@@ -250,6 +255,7 @@ function SellerProductFormInner({
       imageUrls: formState.imageUrls,
       variants: formState.variants.map((variant) => ({
         sku: variant.sku.trim(),
+        attributes: variant.attributes,
         price:
           variant.price.trim() === "" ? Number.NaN : Number(variant.price),
         stock:
@@ -257,16 +263,46 @@ function SellerProductFormInner({
       })),
     };
 
+    if (isEditing) {
+      const parsed = updateSellerProductSchema.safeParse(payloadCandidate);
+      if (!parsed.success) {
+        setError(
+          parsed.error.issues[0]?.message ?? "Dữ liệu sản phẩm không hợp lệ",
+        );
+        return;
+      }
+
+      if (!editingProduct?._id) {
+        setError("Không tìm thấy sản phẩm để cập nhật");
+        return;
+      }
+
+      try {
+        await onSubmitUpdate(editingProduct._id, parsed.data);
+      } catch (submitError) {
+        setError(
+          submitError instanceof Error
+            ? submitError.message
+            : "Không thể cập nhật sản phẩm",
+        );
+      }
+      return;
+    }
+
     const parsed = createSellerProductSchema.safeParse(payloadCandidate);
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Dữ liệu sản phẩm không hợp lệ");
       return;
     }
 
-    if (isEditing && editingProduct?._id) {
-      await onSubmitUpdate(editingProduct._id, parsed.data);
-    } else {
+    try {
       await onSubmitCreate(parsed.data);
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : "Không thể tạo sản phẩm",
+      );
     }
   };
 

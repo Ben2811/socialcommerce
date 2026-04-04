@@ -19,19 +19,25 @@ import type {
 export const sellerProductQueryKeys = {
   all: ["seller-products"] as const,
   lists: () => [...sellerProductQueryKeys.all, "list"] as const,
-  list: (page?: number, limit?: number, status?: SellerProductStatus) =>
-    [...sellerProductQueryKeys.lists(), { page, limit, status }] as const,
+  list: (
+    page?: number,
+    limit?: number,
+    status?: SellerProductStatus,
+    search?: string,
+  ) =>
+    [...sellerProductQueryKeys.lists(), { page, limit, status, search }] as const,
 };
 
 export function useSellerProducts(
   page: number = 1,
   limit: number = 10,
   status?: SellerProductStatus,
+  search?: string,
 ) {
   return useQuery({
-    queryKey: sellerProductQueryKeys.list(page, limit, status),
+    queryKey: sellerProductQueryKeys.list(page, limit, status, search),
     queryFn: async () => {
-      const response = await getSellerProducts(page, limit, status);
+      const response = await getSellerProducts(page, limit, status, search);
       if (!response.success)
         throw new Error(response.message || "Failed to fetch seller products");
       return response.data;

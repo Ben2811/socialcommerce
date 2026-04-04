@@ -19,6 +19,10 @@ export class URLBuilder {
   addSearchParams(
     params: Record<string, string | number | boolean>,
   ): URLBuilder {
+    if (Object.keys(params).length === 0) {
+      return this;
+    }
+
     const searchParams = new URLSearchParams();
     for (const key in params) {
       searchParams.append(key, String(params[key]));

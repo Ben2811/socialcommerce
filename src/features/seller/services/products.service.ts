@@ -43,12 +43,15 @@ export class SellerProductsService implements ISellerProductsService {
       ),
     ) as Record<string, string | number | boolean>;
 
-    const url = new URLBuilder()
-      .addPath(API_ENDPOINTS.seller.products)
-      .addSearchParams(searchParams)
-      .build();
+    const urlBuilder = new URLBuilder().addPath(API_ENDPOINTS.seller.products);
 
-    return apiClient.get<PaginationResponse<SellerProduct>>(url, token);
+    if (Object.keys(searchParams).length > 0) {
+      urlBuilder.addSearchParams(searchParams);
+    }
+
+    const finalUrl = urlBuilder.build();
+
+    return apiClient.get<PaginationResponse<SellerProduct>>(finalUrl, token);
   }
 
   async createProduct(

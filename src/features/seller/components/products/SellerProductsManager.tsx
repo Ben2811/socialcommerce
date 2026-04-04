@@ -38,6 +38,7 @@ export function SellerProductsManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [page, setPage] = useState(1);
+  const normalizedSearchTerm = searchTerm.trim();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<SellerProduct | null>(null);
@@ -54,6 +55,7 @@ export function SellerProductsManager() {
     page,
     LIMIT,
     statusFilter === "all" ? undefined : statusFilter,
+    normalizedSearchTerm.length > 0 ? normalizedSearchTerm : undefined,
   );
 
   const createMutation = useCreateSellerProduct();
@@ -147,15 +149,25 @@ export function SellerProductsManager() {
     setPage(1);
   };
 
+  const handleSearchChange = (nextSearch: string) => {
+    setSearchTerm(nextSearch);
+    setPage(1);
+  };
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <SellerProductsHeader totalItems={totalItems} onAddProduct={handleAddProduct} />
+        <SellerProductsHeader
+          totalItems={totalItems}
+          statusFilter={statusFilter}
+          searchTerm={searchTerm}
+          onAddProduct={handleAddProduct}
+        />
 
         <SellerProductsTable
           products={products}
           searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          onSearchChange={handleSearchChange}
           statusFilter={statusFilter}
           onStatusFilterChange={handleStatusFilterChange}
           onEdit={handleEditProduct}

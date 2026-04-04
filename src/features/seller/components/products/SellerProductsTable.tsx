@@ -64,19 +64,6 @@ export function SellerProductsTable({
   onDelete,
   isLoading,
 }: SellerProductsTableProps) {
-  const filteredProducts = products.filter((product) => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-    const matchedSearch =
-      normalizedSearch.length === 0 ||
-      product.name.toLowerCase().includes(normalizedSearch) ||
-      (product.category?.name ?? "").toLowerCase().includes(normalizedSearch);
-
-    const matchedStatus =
-      statusFilter === "all" || product.status === statusFilter;
-
-    return matchedSearch && matchedStatus;
-  });
-
   return (
     <Card className="border-border/70 bg-card shadow-sm">
       <CardHeader className="border-b border-border/60 px-6 py-6">
@@ -84,7 +71,7 @@ export function SellerProductsTable({
           <div>
             <CardTitle>Danh sách sản phẩm</CardTitle>
             <CardDescription className="mt-1">
-              {filteredProducts.length} sản phẩm hiển thị theo bộ lọc hiện tại
+              {products.length} sản phẩm hiển thị theo bộ lọc hiện tại
             </CardDescription>
           </div>
 
@@ -95,6 +82,7 @@ export function SellerProductsTable({
                 placeholder="Tìm theo tên sản phẩm, danh mục..."
                 className="pl-10"
                 value={searchTerm}
+                aria-label="Tìm kiếm sản phẩm theo tên hoặc danh mục"
                 onChange={(e) => onSearchChange(e.target.value)}
               />
             </div>
@@ -102,6 +90,7 @@ export function SellerProductsTable({
             <NativeSelect
               className="w-full sm:w-48"
               value={statusFilter}
+              aria-label="Lọc sản phẩm theo trạng thái"
               onChange={(e) =>
                 onStatusFilterChange(e.target.value as "all" | SellerProductStatus)
               }
@@ -121,7 +110,7 @@ export function SellerProductsTable({
             <div className="flex items-center justify-center py-8">
               <div className="text-muted-foreground">Đang tải sản phẩm...</div>
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : products.length === 0 ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-muted-foreground">
                 Không tìm thấy sản phẩm phù hợp
@@ -141,7 +130,7 @@ export function SellerProductsTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
+                {products.map((product) => (
                   <TableRow
                     key={product._id}
                     className="border-border/40 hover:bg-muted/40"

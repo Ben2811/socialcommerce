@@ -25,7 +25,10 @@ export function SellerProductsActions({
 }: SellerProductsActionsProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 text-sm hover:bg-accent hover:text-accent-foreground">
+      <DropdownMenuTrigger
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md p-0 text-sm hover:bg-accent hover:text-accent-foreground"
+        aria-label={`Mở menu thao tác cho sản phẩm ${product.name}`}
+      >
         <MoreVertical className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
