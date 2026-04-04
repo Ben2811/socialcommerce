@@ -1,10 +1,9 @@
-import { ProductCard } from "@/features/products";
+import { ProductList } from "@/features/products";
 import { productService } from "@/features/products/services/products.service";
 import { userService } from "@/features/profile/services/users.service";
 import { User as UserIcon, Store, Package, MapPin, Mail, Phone } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import type { Product } from "@/features/products/types";
 export default async function SellerShopPage(
   params: PageProps<"/shop/[sellerId]">,
 ) {
@@ -28,7 +27,6 @@ export default async function SellerShopPage(
   const initialProductsPage = productsResponse?.success
     ? productsResponse
     : undefined;
-  const products: Product[] = initialProductsPage?.data?.items ?? [];
   const totalProducts = initialProductsPage?.data?.totalItems;
 
   return (
@@ -120,20 +118,10 @@ export default async function SellerShopPage(
           <h2 className="text-xl font-bold text-zinc-900">Sản phẩm</h2>
         </div>
 
-        {products.length > 0 ? (
-          <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((product) => (
-              <ProductCard
-                key={product._id || `${product.ownerId}-${product.name}`}
-                product={product}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex min-h-[240px] items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-white text-zinc-500">
-            Chưa có sản phẩm
-          </div>
-        )}
+        <ProductList
+          filter={{ ownerId: sellerId }}
+          initialProductsPage={initialProductsPage}
+        />
       </div>
     </main>
   );

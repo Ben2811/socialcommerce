@@ -9,6 +9,12 @@ export const API_ENDPOINTS = {
   cart: "/api/cart",
   orders: "/api/orders",
   payments: "/api/payments",
+  images: {
+    upload: "/api/images/upload",
+  },
+  seller: {
+    products: "/api/products/my",
+  },
   admin: {
     users: "/api/admin/users",
     products: "/api/admin/products",
