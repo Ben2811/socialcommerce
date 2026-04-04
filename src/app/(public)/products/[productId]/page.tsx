@@ -38,9 +38,9 @@ function buildBreadcrumbs(productId: string, title: string) {
 
 function buildSpecs(product: Product | null) {
   return [
-    { label: "Danh mục", value: product?.categoryId ?? "Phụ kiện máy tính" },
+    { label: "Danh mục", value: product?.category?.name ?? "Phụ kiện máy tính" },
     { label: "Tình trạng", value: product?.inStock ? "Còn hàng" : "Hết hàng" },
-    { label: "Bảo hành", value: product?.variants?.[0]?.sku ?? "12 tháng" },
+    { label: "Bảo hành", value: "12 tháng" },
     { label: "SKU", value: product?.variants?.[0]?.sku ?? "Standard" },
   ];
 }
