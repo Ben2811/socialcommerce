@@ -1,12 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { Loader2, MapPin, Plus, ShoppingBag } from "lucide-react";
 import { useCreateOrder } from "@/features/orders/hooks/useOrders";
 import type { CreateOrderInput, ShippingAddress } from "@/features/orders/types/order";
-import { useCreateVnpayPayment } from "@/features/payments";
 import { useAddresses } from "@/features/profile/hooks/useAddress";
 import type { Address } from "@/features/profile/types/address.interface";
 import type { CartItem } from "../types/cart";
@@ -76,10 +76,10 @@ export function CheckoutDialog({
   onSuccess,
   selectedItems,
 }: CheckoutDialogProps) {
+  const router = useRouter();
   const { data: addresses = [] } = useAddresses();
   const { mutate: createOrder, isPending: isCreatingOrder } = useCreateOrder();
-  const { mutate: createVnpayPayment, isPending: isCreatingPayment } = useCreateVnpayPayment();
-  const isPending = isCreatingOrder || isCreatingPayment;
+  const isPending = isCreatingOrder;
 
   const [addressMode, setAddressMode] = useState<AddressMode>(
     addresses.length > 0 ? "saved" : "manual",
@@ -130,7 +130,7 @@ export function CheckoutDialog({
       createOrder(input, {
         onSuccess: (order) => {
           onSuccess();
-          createVnpayPayment({ orderId: order._id });
+          router.push(`/payment?orderId=${order._id}`);
         },
       });
     },
@@ -422,12 +422,7 @@ export function CheckoutDialog({
             disabled={isPending}
             onClick={() => form.handleSubmit()}
           >
-            {isCreatingPayment ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Đang chuyển đến VNPay...
-              </>
-            ) : isCreatingOrder ? (
+            {isCreatingOrder ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Đang tạo đơn hàng...
