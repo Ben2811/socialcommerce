@@ -75,7 +75,7 @@ export class APIClient {
 
       const data = await this.handleResponse<BaseResponse<T>>(response);
       return data;
-    } catch (error) { 
+    } catch (error) {
       console.error(`API ${method} request failed:`, error);
       return this.createErrorResponse<T>(error);
     }

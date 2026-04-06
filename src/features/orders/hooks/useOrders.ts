@@ -66,6 +66,36 @@ export function useMyOrders(page = 1, limit = 10) {
   });
 }
 
+export const sellerOrderQueryKeys = {
+  all: ["sellerOrders"] as const,
+  lists: () => [...sellerOrderQueryKeys.all, "list"] as const,
+  list: (page: number, limit: number) =>
+    [...sellerOrderQueryKeys.lists(), { page, limit }] as const,
+};
+
+export function useSellerOrders(page = 1, limit = 10) {
+  return useQuery({
+    queryKey: sellerOrderQueryKeys.list(page, limit),
+    queryFn: async () => {
+      const token = await getAuthToken();
+
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      const response = await orderService.getSellerOrders(page, limit, token);
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch seller orders");
+      }
+
+      return response.data;
+    },
+    staleTime: 0,
+    refetchOnMount: "always",
+  });
+}
+
 export function useOrder(orderId: string) {
   return useQuery({
     queryKey: orderQueryKeys.detail(orderId),
@@ -180,6 +210,35 @@ export function useCancelOrder() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to cancel order");
+    },
+  });
+}
+
+export function useConfirmCodOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const token = await getAuthToken();
+
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
+      const response = await orderService.confirmCodOrder(orderId, token);
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to confirm order");
+      }
+
+      return response.data;
+    },
+    onSuccess: (order) => {
+      queryClient.invalidateQueries({ queryKey: orderQueryKeys.myLists() });
+      queryClient.setQueryData(orderQueryKeys.detail(order._id), order);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to confirm order");
     },
   });
 }

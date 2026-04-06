@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   },
   seller: {
     products: "/api/products/my",
+    orders: "/api/orders/seller/my",
   },
   admin: {
     users: "/api/admin/users",

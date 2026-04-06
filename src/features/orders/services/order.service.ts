@@ -19,10 +19,12 @@ export type {
 interface IOrderService {
   getAllOrders(page?: number, limit?: number, token?: string | null): Promise<BaseResponse<OrdersListResponse>>;
   getMyOrders(page?: number, limit?: number, token?: string | null): Promise<BaseResponse<OrdersListResponse>>;
+  getSellerOrders(page?: number, limit?: number, token?: string | null): Promise<BaseResponse<OrdersListResponse>>;
   getOrderById(id: string, token?: string | null): Promise<BaseResponse<Order>>;
   createOrder(input: CreateOrderInput, token?: string | null): Promise<BaseResponse<Order>>;
   updateOrder(id: string, input: UpdateOrderInput, token?: string | null): Promise<BaseResponse<Order>>;
   cancelOrder(id: string, token?: string | null): Promise<BaseResponse<Order>>;
+  confirmCodOrder(id: string, token?: string | null): Promise<BaseResponse<Order>>;
   deleteOrder(id: string, token?: string | null): Promise<BaseResponse<null>>;
 }
 
@@ -59,6 +61,18 @@ export class OrderService implements IOrderService {
     token?: string | null,
   ): Promise<BaseResponse<OrdersListResponse>> {
     const url = this.addPaginationParams(this.url("my"), page, limit);
+    return apiClient.get<OrdersListResponse>(url, token);
+  }
+
+  async getSellerOrders(
+    page?: number,
+    limit?: number,
+    token?: string | null,
+  ): Promise<BaseResponse<OrdersListResponse>> {
+    const baseUrl = new URLBuilder()
+      .addPath(API_ENDPOINTS.seller.orders)
+      .build();
+    const url = this.addPaginationParams(baseUrl, page, limit);
     return apiClient.get<OrdersListResponse>(url, token);
   }
 
@@ -103,6 +117,17 @@ export class OrderService implements IOrderService {
     );
   }
 
+  async confirmCodOrder(
+    id: string,
+    token?: string | null,
+  ): Promise<BaseResponse<Order>> {
+    return apiClient.post<null, Order>(
+      this.url(`${id}/confirm-cod`),
+      null,
+      token,
+    );
+  }
+
   async deleteOrder(
     id: string,
     token?: string | null,
@@ -111,4 +136,4 @@ export class OrderService implements IOrderService {
   }
 }
 
-export const orderService = new OrderService();
+export const orderService = new OrderService();

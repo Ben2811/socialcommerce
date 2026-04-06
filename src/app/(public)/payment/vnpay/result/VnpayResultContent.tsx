@@ -59,16 +59,14 @@ export function VnpayResultContent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-sm">
-        {/* Status icon */}
         <div className="mb-6 flex justify-center">
           {isSuccess ? (
-            <CheckCircle className="h-16 w-16 text-green-500" />
+            <CheckCircle className="h-16 w-16 text-success" />
           ) : (
             <XCircle className="h-16 w-16 text-destructive" />
           )}
         </div>
 
-        {/* Title */}
         <h1 className="mb-2 text-center text-2xl font-bold">
           {isSuccess ? "Thanh toán thành công" : "Thanh toán thất bại"}
         </h1>
@@ -78,7 +76,6 @@ export function VnpayResultContent() {
             : "Giao dịch không thành công. Vui lòng thử lại hoặc chọn phương thức thanh toán khác."}
         </p>
 
-        {/* Transaction details */}
         <div className="mb-8 space-y-3 rounded-xl bg-muted/50 p-4 text-sm">
           <DetailRow label="Mã đơn hàng" value={orderId} />
           {params.vnp_TransactionNo && (
@@ -104,7 +101,7 @@ export function VnpayResultContent() {
             value={
               <span
                 className={
-                  isSuccess ? "text-green-600 font-medium" : "text-destructive font-medium"
+                  isSuccess ? "text-success font-medium" : "text-destructive font-medium"
                 }
               >
                 {isSuccess ? "Thành công" : `Thất bại (${params.vnp_ResponseCode ?? "unknown"})`}
@@ -113,13 +110,19 @@ export function VnpayResultContent() {
           />
         </div>
 
-        {/* Actions */}
         <div className="flex flex-col gap-3">
-          <Button onClick={() => router.push(`/orders/${orderId}`)}>
+          <Button
+            id="vnpay-view-profile-btn"
+            onClick={() => router.push("/profile")}
+          >
             <Clock className="mr-2 h-4 w-4" />
-            Xem chi tiết đơn hàng
+            Xem đơn hàng của tôi
           </Button>
-          <Button variant="outline" onClick={() => router.push("/")}>
+          <Button
+            id="vnpay-continue-shopping-btn"
+            variant="outline"
+            onClick={() => router.push("/")}
+          >
             Tiếp tục mua sắm
           </Button>
         </div>

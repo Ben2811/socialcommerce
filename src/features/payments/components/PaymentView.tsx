@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowLeft, WalletCards } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { ArrowLeft, Loader2, Truck, WalletCards } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/features/shared/utils/cn";
+import { useCreateVnpayPayment } from "@/features/payments/hooks/usePayments";
+import { useConfirmCodOrder } from "@/features/orders/hooks/useOrders";
 
 type StepStatus = "done" | "current" | "todo";
-type PaymentMethodId = "vnpay";
+type PaymentMethodId = "vnpay" | "cod";
 
 interface CheckoutStep {
   id: number;
@@ -29,11 +33,57 @@ const PAYMENT_METHODS = [
     label: "VNPay",
     description:
       "Thanh toán qua VNPay - Hỗ trợ thẻ ATM, Visa, Mastercard, QR Code",
+    icon: WalletCards,
+  },
+  {
+    id: "cod" as const,
+    label: "Thanh toán khi nhận hàng (COD)",
+    description:
+      "Nhận hàng và thanh toán bằng tiền mặt khi shipper giao đến tay bạn",
+    icon: Truck,
   },
 ];
 
 export function PaymentView() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const orderId = searchParams.get("orderId");
+
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethodId>("vnpay");
+
+  const { mutate: createVnpayPayment, isPending: isCreatingVnpay } =
+    useCreateVnpayPayment();
+  const { mutate: confirmCod, isPending: isConfirmingCod } =
+    useConfirmCodOrder();
+
+  const isPending = isCreatingVnpay || isConfirmingCod;
+
+  useEffect(() => {
+    if (!orderId) {
+      toast.error("Không tìm thấy đơn hàng. Vui lòng quay lại giỏ hàng.");
+      router.replace("/cart");
+    }
+  }, [orderId, router]);
+
+  if (!orderId) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const handlePayment = () => {
+    if (selectedMethod === "vnpay") {
+      createVnpayPayment({ orderId, language: "vn" });
+    } else {
+      confirmCod(orderId, {
+        onSuccess: () => {
+          router.push(`/payment/result/cod?orderId=${orderId}`);
+        },
+      });
+    }
+  };
 
   return (
     <main className="bg-background">
@@ -48,8 +98,8 @@ export function PaymentView() {
                 <div
                   className={cn(
                     "flex h-12 w-12 items-center justify-center rounded-full border text-lg font-semibold leading-5 transition-colors",
-                    isCurrent && "border border-foreground/70 bg-orange-400 text-foreground",
-                    isDone && "border border-foreground/70 bg-orange-400 text-foreground",
+                    isCurrent && "border border-primary bg-primary text-primary-foreground",
+                    isDone && "border border-primary bg-primary text-primary-foreground",
                     !isCurrent && !isDone && "border-border bg-card text-muted-foreground",
                   )}
                   aria-current={isCurrent ? "step" : undefined}
@@ -83,7 +133,7 @@ export function PaymentView() {
         <div className="space-y-3">
           <div className="rounded-3xl border border-border bg-card p-5 md:p-8">
             <div className="mb-7 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-200 text-orange-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <WalletCards className="h-5 w-5" />
               </div>
 
@@ -100,6 +150,7 @@ export function PaymentView() {
               >
                 {PAYMENT_METHODS.map((method) => {
                   const isSelected = selectedMethod === method.id;
+                  const Icon = method.icon;
 
                   return (
                     <label
@@ -108,7 +159,7 @@ export function PaymentView() {
                       className={cn(
                         "flex cursor-pointer items-start gap-4 rounded-3xl border p-4 transition-colors md:px-6",
                         isSelected
-                          ? "border-2 border-orange-500 bg-orange-100/70"
+                          ? "border-2 border-primary bg-primary/5"
                           : "border-border bg-card hover:bg-muted/30",
                       )}
                     >
@@ -118,8 +169,8 @@ export function PaymentView() {
                         className="mt-3"
                       />
 
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-200 text-orange-500">
-                        <WalletCards className="h-6 w-6" />
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Icon className="h-6 w-6" />
                       </div>
 
                       <div className="min-w-0">
@@ -146,12 +197,22 @@ export function PaymentView() {
           </div>
 
           <Button
+            id="payment-continue-btn"
             type="button"
-            variant="orange"
+            variant="default"
             size="lg"
-            className="h-10 w-full rounded-lg bg-orange-400 text-white hover:bg-orange-500 text-sm font-semibold"
+            disabled={isPending}
+            onClick={handlePayment}
+            className="h-10 w-full rounded-lg text-sm font-semibold"
           >
-            Tiếp tục thanh toán
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isCreatingVnpay ? "Đang tạo thanh toán..." : "Đang xác nhận..."}
+              </>
+            ) : (
+              "Tiếp tục thanh toán"
+            )}
           </Button>
         </div>
       </section>
