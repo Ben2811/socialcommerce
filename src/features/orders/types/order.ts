@@ -4,19 +4,30 @@ export interface OrderItem {
   productId: string;
   sku: string;
   quantity: number;
+  productName?: string;
+  price?: number;
+  imageUrls?: string[];
 }
 
 export interface ShippingAddress {
   street: string;
   city: string;
-  state: string;
+  state?: string;
   zipCode: string;
   country: string;
+}
+
+export interface OrderUser {
+  _id: string;
+  displayName?: string;
+  email?: string;
+  avatarUrl?: string;
 }
 
 export interface Order {
   _id: string;
   userId: string;
+  user?: OrderUser;
   items: OrderItem[];
   shippingAddress: ShippingAddress;
   notes?: string;
@@ -27,7 +38,11 @@ export interface Order {
 }
 
 export interface CreateOrderInput {
-  items: OrderItem[];
+  items: Array<{
+    productId: string;
+    sku: string;
+    quantity: number;
+  }>;
   shippingAddress: ShippingAddress;
   notes?: string;
 }
