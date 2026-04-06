@@ -2,13 +2,36 @@
 
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { CheckCircle, Package, ShoppingBag, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Package, ShoppingBag, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function CodResultContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const orderId = searchParams.get("orderId") ?? "--";
+  const orderId = searchParams.get("orderId")?.trim();
+
+  if (!orderId) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center shadow-sm">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+              <AlertCircle className="h-12 w-12 text-destructive" />
+            </div>
+          </div>
+
+          <h1 className="mb-2 text-2xl font-bold text-foreground">Không tìm thấy đơn hàng</h1>
+          <p className="mb-8 text-sm text-muted-foreground">
+            Liên kết xác nhận không hợp lệ hoặc thiếu mã đơn hàng.
+          </p>
+
+          <Button id="cod-go-home-btn" onClick={() => router.replace("/")}>
+            Quay về trang chủ
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

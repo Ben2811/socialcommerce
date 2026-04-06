@@ -4,7 +4,6 @@ import { useState } from "react";
 import { format } from "date-fns";
 import {
   ClipboardList,
-  Package,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -13,7 +12,6 @@ import {
   MapPin,
   Calendar,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/features/shared";
 import { useSellerOrders } from "@/features/orders/hooks/useOrders";
@@ -34,6 +32,20 @@ const PAGE_SIZE = 10;
 
 interface SellerOrderCardProps {
   order: Order & { user?: { displayName?: string; email?: string } };
+}
+
+function formatCreatedAt(value: string | Date | undefined | null): string {
+  if (!value) {
+    return "Không rõ thời gian";
+  }
+
+  const parsedDate = value instanceof Date ? value : new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Không rõ thời gian";
+  }
+
+  return format(parsedDate, "dd/MM/yyyy HH:mm");
 }
 
 function SellerOrderCard({ order }: SellerOrderCardProps) {
@@ -80,7 +92,7 @@ function SellerOrderCard({ order }: SellerOrderCardProps) {
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            {format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}
+            {formatCreatedAt(order.createdAt)}
           </span>
           {order.shippingAddress && (
             <span className="flex items-center gap-1">
