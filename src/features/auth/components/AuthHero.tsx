@@ -9,7 +9,7 @@ interface AuthHeroProps {
 export function AuthHero({
   title,
   description,
-  badgeLabel = "Welcome back",
+  badgeLabel = "Chào mừng trở lại",
 }: AuthHeroProps) {
   return (
     <div className="relative w-full overflow-hidden rounded-[28px] border border-border/60 bg-card p-10 shadow-xl">
@@ -33,20 +33,21 @@ export function AuthHero({
           <div className="rounded-2xl border border-border/60 bg-background p-5">
             <ShieldCheck className="h-5 w-5 text-primary" />
             <p className="mt-3 text-sm font-medium text-foreground">
-              Secure access
+              Truy cập an toàn
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your account stays protected with a streamlined sign-in flow.
+              Tài khoản của bạn được bảo vệ bằng quy trình đăng nhập hợp lý.
             </p>
           </div>
 
           <div className="rounded-2xl border border-border/60 bg-background p-5">
             <Truck className="h-5 w-5 text-primary" />
             <p className="mt-3 text-sm font-medium text-foreground">
-              Faster checkout
+              Thanh toán nhanh hơn
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Continue where you left off and complete purchases quickly.
+              Tiếp tục từ nơi bạn dừng lại và hoàn thành mua hàng một cách nhanh
+              chóng.
             </p>
           </div>
         </div>

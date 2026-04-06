@@ -74,7 +74,7 @@ export function UserMenu() {
         <DropdownMenuItem
           className="cursor-pointer"
           render={
-            <Link href="/orders">
+            <Link href="/profile">
               <ShoppingCart className="mr-2 h-4 w-4" />
               <span>Đơn mua</span>
             </Link>

@@ -42,7 +42,7 @@ export function LoginForm() {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Login failed. Please check your credentials and try again.",
+            : "Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập và thử lại.",
         );
       }
     },
@@ -52,14 +52,14 @@ export function LoginForm() {
     <Card className="w-full border-border/60 shadow-xl">
       <CardHeader className="space-y-3 border-b border-border/60 px-6 py-6">
         <div className="inline-flex w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          Login
+          Đăng nhập
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">
-            Sign in to your account
+            Đăng nhập vào tài khoản của bạn
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Enter your email and password to continue.
+            Nhập email và mật khẩu của bạn để tiếp tục.
           </p>
         </div>
       </CardHeader>
@@ -95,7 +95,7 @@ export function LoginForm() {
             <form.Field name="password">
               {(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Mật khẩu</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -103,7 +103,7 @@ export function LoginForm() {
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder="Nhập mật khẩu của bạn"
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
@@ -116,7 +116,7 @@ export function LoginForm() {
             className="w-full"
             onClick={() => form.handleSubmit()}
           >
-            Login
+            Đăng nhập
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Form>
@@ -124,12 +124,12 @@ export function LoginForm() {
 
       <CardFooter className="flex flex-col gap-3 border-t border-border/60 px-6 py-5">
         <p className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
+          Chưa có tài khoản?{" "}
           <Link
             href="/register"
             className="font-medium text-primary hover:underline"
           >
-            Register
+            Đăng ký
           </Link>
         </p>
       </CardFooter>

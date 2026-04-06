@@ -47,12 +47,12 @@ export function RegisterForm() {
         console.log(formData);
 
         await register(formData);
-        toast.success("Account created successfully.");
+        toast.success("Tài khoản được tạo thành công.");
       } catch (error) {
         toast.error(
           error instanceof Error
             ? error.message
-            : "Registration failed. Please check your details and try again.",
+            : "Đăng ký thất bại. Vui lòng kiểm tra thông tin của bạn và thử lại.",
         );
       }
     },
@@ -62,14 +62,14 @@ export function RegisterForm() {
     <Card className="w-full border-border/60 shadow-xl">
       <CardHeader className="space-y-3 border-b border-border/60 px-6 py-6">
         <div className="inline-flex w-fit rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-          Register
+          Đăng Ký
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold tracking-tight">
-            Create your account
+            Tạo tài khoản của bạn
           </h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Enter your details below to get started.
+            Nhập thông tin của bạn dưới đây để bắt đầu.
           </p>
         </div>
       </CardHeader>
@@ -105,14 +105,14 @@ export function RegisterForm() {
             <form.Field name="username">
               {(field) => (
                 <Field className="md:col-span-1">
-                  <FieldLabel htmlFor={field.name}>Username</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Tên người dùng</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Choose a username"
+                    placeholder="Chọn tên người dùng"
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
@@ -122,7 +122,7 @@ export function RegisterForm() {
             <form.Field name="phonenumber">
               {(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>Phone number</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Số điện thoại</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -140,14 +140,14 @@ export function RegisterForm() {
             <form.Field name="address">
               {(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>Address</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Địa chỉ</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Your full address"
+                    placeholder="Địa chỉ đầy đủ của bạn"
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
@@ -157,7 +157,7 @@ export function RegisterForm() {
             <form.Field name="password">
               {(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>Mật khẩu</FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -165,7 +165,7 @@ export function RegisterForm() {
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Create a password"
+                    placeholder="Tạo một mật khẩu"
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
@@ -175,7 +175,9 @@ export function RegisterForm() {
             <form.Field name="confirmPassword">
               {(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>Confirm password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    Xác nhận mật khẩu
+                  </FieldLabel>
                   <Input
                     id={field.name}
                     name={field.name}
@@ -183,7 +185,7 @@ export function RegisterForm() {
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="Repeat your password"
+                    placeholder="Nhập lại mật khẩu của bạn"
                   />
                   <FieldError errors={field.state.meta.errors} />
                 </Field>
@@ -196,7 +198,7 @@ export function RegisterForm() {
             className="w-full"
             onClick={() => form.handleSubmit()}
           >
-            Create account
+            Tạo tài khoản
             <ArrowRight className="h-4 w-4" />
           </Button>
         </Form>
@@ -204,12 +206,12 @@ export function RegisterForm() {
 
       <CardFooter className="flex flex-col gap-3 border-t border-border/60 px-6 py-5">
         <p className="text-sm text-muted-foreground">
-          Already have an account?{" "}
+          Đã có tài khoản?{" "}
           <Link
             href="/login"
             className="font-medium text-primary hover:underline"
           >
-            Login
+            Đăng nhập
           </Link>
         </p>
       </CardFooter>

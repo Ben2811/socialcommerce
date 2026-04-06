@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import { Navbar, Footer } from "@/features/shared";
+import { Navbar } from "@/features/shared";
 import "./globals.css";
 import { cn } from "@/features/shared/utils/cn";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,6 +8,7 @@ import { getSession } from "@/features/auth/lib/getSession";
 import AuthProvider from "@/features/auth/providers/AuthProvider";
 import { QueryProvider } from "@/providers/query-provider";
 import { SocketProvider, ChatWindow } from "@/features/chat";
+import { FooterWrapper } from "./_components/FooterWrapper";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -44,7 +45,7 @@ export default async function RootLayout({
             >
               <Navbar />
               {children}
-              <Footer />
+              <FooterWrapper />
               <Toaster />
               <ChatWindow />
             </body>

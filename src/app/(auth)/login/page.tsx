@@ -9,9 +9,9 @@ export default function LoginPage() {
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2">
         <div className="hidden lg:flex">
           <AuthHero
-            badgeLabel="Welcome back"
-            title="Sign in to continue your shopping journey."
-            description="Access your cart, manage orders, save favorites, and keep your profile in sync across devices."
+            badgeLabel="Chào mừng trở lại"
+            title="Đăng nhập để tiếp tục hành trình mua sắm của bạn."
+            description="Truy cập giỏ hàng của bạn, quản lý đơn hàng, lưu yêu thích và giữ hồ sơ của bạn đồng bộ trên các thiết bị."
           />
         </div>
 

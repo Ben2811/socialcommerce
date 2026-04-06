@@ -9,9 +9,9 @@ export default function RegisterPage() {
       <div className="mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-2">
         <div className="hidden lg:flex">
           <AuthHero
-            badgeLabel="Join Social Commerce"
-            title="Create your account and start shopping smarter."
-            description="Save products, track orders, and connect with sellers in one clean shopping experience."
+            badgeLabel="Gia nhập Social Commerce"
+            title="Tạo tài khoản của bạn và bắt đầu mua sắm thông minh hơn."
+            description="Lưu sản phẩm, theo dõi đơn hàng, và kết nối với người bán trong một trải nghiệm mua sắm hoàn hảo."
           />
         </div>
 
