@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
+import { useStore } from "@tanstack/react-store";
 import Image from "next/image";
 import { Plus, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -121,13 +123,84 @@ function SellerProductFormInner({
   isLoading,
 }: Omit<SellerProductFormDialogProps, "open">) {
   const isEditing = !!editingProduct;
-
-  const [formState, setFormState] = useState<ProductFormState>(
-    createInitialFormState(editingProduct),
-  );
   const [error, setError] = useState<string | null>(null);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const form = useForm({
+    defaultValues: createInitialFormState(editingProduct),
+    onSubmit: async (values) => {
+      setError(null);
+
+      const payloadCandidate = {
+        name: values.value.name,
+        description: values.value.description.trim() || undefined,
+        displayPrice:
+          values.value.displayPrice.trim() === ""
+            ? Number.NaN
+            : Number(values.value.displayPrice),
+        categoryId: values.value.categoryId,
+        stock:
+          values.value.stock.trim() === ""
+            ? undefined
+            : Number(values.value.stock),
+        inStock: values.value.inStock,
+        imageUrls: values.value.imageUrls,
+        variants: values.value.variants.map((variant) => ({
+          sku: variant.sku.trim(),
+          attributes: variant.attributes,
+          price:
+            variant.price.trim() === "" ? Number.NaN : Number(variant.price),
+          stock:
+            variant.stock.trim() === "" ? undefined : Number(variant.stock),
+        })),
+      };
+
+      if (isEditing) {
+        const parsed = updateSellerProductSchema.safeParse(payloadCandidate);
+        if (!parsed.success) {
+          setError(
+            parsed.error.issues[0]?.message ?? "Dữ liệu sản phẩm không hợp lệ",
+          );
+          return;
+        }
+
+        if (!editingProduct?._id) {
+          setError("Không tìm thấy sản phẩm để cập nhật");
+          return;
+        }
+
+        try {
+          await onSubmitUpdate(editingProduct._id, parsed.data);
+        } catch (submitError) {
+          setError(
+            submitError instanceof Error
+              ? submitError.message
+              : "Không thể cập nhật sản phẩm",
+          );
+        }
+        return;
+      }
+
+      const parsed = createSellerProductSchema.safeParse(payloadCandidate);
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? "Dữ liệu sản phẩm không hợp lệ");
+        return;
+      }
+
+      try {
+        await onSubmitCreate(parsed.data);
+      } catch (submitError) {
+        setError(
+          submitError instanceof Error
+            ? submitError.message
+            : "Không thể tạo sản phẩm",
+        );
+      }
+    },
+  });
+
+  const values = useStore(form.store, (state) => state.values);
 
   const { data: categories = [], isLoading: isLoadingCategories } =
     useQuery<Category[]>({
@@ -144,54 +217,35 @@ function SellerProductFormInner({
     });
 
   const isCategoryMissing = useMemo(() => {
-    if (!formState.categoryId) return false;
-    return !categories.some((category) => category._id === formState.categoryId);
-  }, [categories, formState.categoryId]);
-
-  const handleChange = <K extends keyof ProductFormState>(
-    key: K,
-    value: ProductFormState[K],
-  ) => {
-    setFormState((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+    if (!values.categoryId) return false;
+    return !categories.some((category) => category._id === values.categoryId);
+  }, [categories, values.categoryId]);
 
   const handleVariantChange = (
     index: number,
     key: keyof VariantFormState,
     value: string,
   ) => {
-    setFormState((prev) => {
-      const nextVariants = [...prev.variants];
-      nextVariants[index] = {
-        ...nextVariants[index],
-        [key]: value,
-      };
+    const nextVariants = [...values.variants];
+    nextVariants[index] = {
+      ...nextVariants[index],
+      [key]: value,
+    };
 
-      return {
-        ...prev,
-        variants: nextVariants,
-      };
-    });
+    form.setFieldValue("variants", nextVariants);
   };
 
   const addVariant = () => {
-    setFormState((prev) => ({
-      ...prev,
-      variants: [...prev.variants, { ...EMPTY_VARIANT }],
-    }));
+    form.setFieldValue("variants", [...values.variants, { ...EMPTY_VARIANT }]);
   };
 
   const removeVariant = (index: number) => {
-    setFormState((prev) => {
-      if (prev.variants.length <= 1) return prev;
-      return {
-        ...prev,
-        variants: prev.variants.filter((_, idx) => idx !== index),
-      };
-    });
+    if (values.variants.length <= 1) return;
+
+    form.setFieldValue(
+      "variants",
+      values.variants.filter((_, idx) => idx !== index),
+    );
   };
 
   const handleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -225,85 +279,17 @@ function SellerProductFormInner({
 
     if (uploadedUrls.length === 0) return;
 
-    setFormState((prev) => ({
-      ...prev,
-      imageUrls: Array.from(new Set([...prev.imageUrls, ...uploadedUrls])),
-    }));
+    form.setFieldValue(
+      "imageUrls",
+      Array.from(new Set([...values.imageUrls, ...uploadedUrls])),
+    );
   };
 
   const removeImage = (index: number) => {
-    setFormState((prev) => ({
-      ...prev,
-      imageUrls: prev.imageUrls.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const handleSubmit = async () => {
-    setError(null);
-
-    const payloadCandidate = {
-      name: formState.name,
-      description: formState.description.trim() || undefined,
-      displayPrice:
-        formState.displayPrice.trim() === ""
-          ? Number.NaN
-          : Number(formState.displayPrice),
-      categoryId: formState.categoryId,
-      stock:
-        formState.stock.trim() === "" ? undefined : Number(formState.stock),
-      inStock: formState.inStock,
-      imageUrls: formState.imageUrls,
-      variants: formState.variants.map((variant) => ({
-        sku: variant.sku.trim(),
-        attributes: variant.attributes,
-        price:
-          variant.price.trim() === "" ? Number.NaN : Number(variant.price),
-        stock:
-          variant.stock.trim() === "" ? undefined : Number(variant.stock),
-      })),
-    };
-
-    if (isEditing) {
-      const parsed = updateSellerProductSchema.safeParse(payloadCandidate);
-      if (!parsed.success) {
-        setError(
-          parsed.error.issues[0]?.message ?? "Dữ liệu sản phẩm không hợp lệ",
-        );
-        return;
-      }
-
-      if (!editingProduct?._id) {
-        setError("Không tìm thấy sản phẩm để cập nhật");
-        return;
-      }
-
-      try {
-        await onSubmitUpdate(editingProduct._id, parsed.data);
-      } catch (submitError) {
-        setError(
-          submitError instanceof Error
-            ? submitError.message
-            : "Không thể cập nhật sản phẩm",
-        );
-      }
-      return;
-    }
-
-    const parsed = createSellerProductSchema.safeParse(payloadCandidate);
-    if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Dữ liệu sản phẩm không hợp lệ");
-      return;
-    }
-
-    try {
-      await onSubmitCreate(parsed.data);
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : "Không thể tạo sản phẩm",
-      );
-    }
+    form.setFieldValue(
+      "imageUrls",
+      values.imageUrls.filter((_, idx) => idx !== index),
+    );
   };
 
   return (
@@ -314,7 +300,14 @@ function SellerProductFormInner({
         </DialogTitle>
       </DialogHeader>
 
-      <div className="space-y-5">
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void form.handleSubmit();
+        }}
+        className="space-y-5"
+      >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
@@ -322,8 +315,8 @@ function SellerProductFormInner({
               </label>
               <Input
                 id="name"
-                value={formState.name}
-                onChange={(e) => handleChange("name", e.target.value)}
+                value={values.name}
+                onChange={(e) => form.setFieldValue("name", e.target.value)}
                 placeholder="Nhập tên sản phẩm"
                 disabled={isLoading}
               />
@@ -335,8 +328,8 @@ function SellerProductFormInner({
               </label>
               <NativeSelect
                 id="category"
-                value={formState.categoryId}
-                onChange={(e) => handleChange("categoryId", e.target.value)}
+                value={values.categoryId}
+                onChange={(e) => form.setFieldValue("categoryId", e.target.value)}
                 disabled={isLoading || isLoadingCategories}
                 className="w-full"
               >
@@ -364,8 +357,10 @@ function SellerProductFormInner({
                 id="displayPrice"
                 type="number"
                 min={0}
-                value={formState.displayPrice}
-                onChange={(e) => handleChange("displayPrice", e.target.value)}
+                value={values.displayPrice}
+                onChange={(e) =>
+                  form.setFieldValue("displayPrice", e.target.value)
+                }
                 placeholder="0"
                 disabled={isLoading}
               />
@@ -379,8 +374,8 @@ function SellerProductFormInner({
                 id="stock"
                 type="number"
                 min={0}
-                value={formState.stock}
-                onChange={(e) => handleChange("stock", e.target.value)}
+                value={values.stock}
+                onChange={(e) => form.setFieldValue("stock", e.target.value)}
                 placeholder="0"
                 disabled={isLoading}
               />
@@ -393,12 +388,14 @@ function SellerProductFormInner({
               <div className="flex h-10 items-center gap-3 rounded-md border px-3">
                 <Switch
                   id="inStock"
-                  checked={formState.inStock}
-                  onCheckedChange={(checked) => handleChange("inStock", checked)}
+                  checked={values.inStock}
+                  onCheckedChange={(checked) =>
+                    form.setFieldValue("inStock", checked)
+                  }
                   disabled={isLoading}
                 />
                 <span className="text-sm text-muted-foreground">
-                  {formState.inStock ? "Đang còn hàng" : "Hết hàng"}
+                  {values.inStock ? "Đang còn hàng" : "Hết hàng"}
                 </span>
               </div>
             </div>
@@ -411,8 +408,8 @@ function SellerProductFormInner({
             <Textarea
               id="description"
               rows={3}
-              value={formState.description}
-              onChange={(e) => handleChange("description", e.target.value)}
+              value={values.description}
+              onChange={(e) => form.setFieldValue("description", e.target.value)}
               placeholder="Mô tả sản phẩm"
               disabled={isLoading}
             />
@@ -446,13 +443,13 @@ function SellerProductFormInner({
               Ảnh sẽ được tải lên Cloudinary và lưu URL tự động vào sản phẩm.
             </p>
 
-            {formState.imageUrls.length === 0 ? (
+            {values.imageUrls.length === 0 ? (
               <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
                 Chưa có ảnh nào. Hãy bấm Chọn ảnh để tải lên.
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {formState.imageUrls.map((url, index) => (
+                {values.imageUrls.map((url, index) => (
                   <div
                     key={`${url}-${index}`}
                     className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
@@ -501,7 +498,7 @@ function SellerProductFormInner({
             </div>
 
             <div className="space-y-3">
-              {formState.variants.map((variant, index) => (
+              {values.variants.map((variant, index) => (
                 <div
                   key={`variant-${index}`}
                   className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1.2fr_1fr_1fr_auto]"
@@ -539,7 +536,7 @@ function SellerProductFormInner({
                     variant="ghost"
                     className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => removeVariant(index)}
-                    disabled={isLoading || formState.variants.length <= 1}
+                    disabled={isLoading || values.variants.length <= 1}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -553,29 +550,26 @@ function SellerProductFormInner({
             Khi seller cập nhật sản phẩm, trạng thái sẽ quay về chờ duyệt để admin
             kiểm tra lại.
           </p>
-      </div>
+      
 
-      <DialogFooter>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onOpenChange(false)}
-          disabled={isLoading || isUploadingImages}
-        >
-          Hủy
-        </Button>
-        <Button
-          type="button"
-          onClick={handleSubmit}
-          disabled={isLoading || isUploadingImages}
-        >
-          {isLoading
-            ? "Đang xử lý..."
-            : isEditing
-              ? "Lưu thay đổi"
-              : "Thêm sản phẩm"}
-        </Button>
-      </DialogFooter>
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isLoading || isUploadingImages}
+          >
+            Hủy
+          </Button>
+          <Button type="submit" disabled={isLoading || isUploadingImages}>
+            {isLoading
+              ? "Đang xử lý..."
+              : isEditing
+                ? "Lưu thay đổi"
+                : "Thêm sản phẩm"}
+          </Button>
+        </DialogFooter>
+      </form>
     </>
   );
 }
