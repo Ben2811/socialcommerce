@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Minus, Plus, MoreHorizontal, Trash2, Eye } from "lucide-react";
 import { CartItem } from "../types/cart";
 import { formatPrice } from "@/features/shared";
@@ -26,6 +26,7 @@ export function CartItemRow({
   onRemove,
 }: CartItemRowProps) {
   const [imgError, setImgError] = useState(false);
+  const [quantity, setQuantity] = useState(item.quantity);
   const imageUrl = item.imageUrls?.[0] ?? "";
 
   return (
@@ -82,12 +83,29 @@ export function CartItemRow({
             <Minus className="size-3" />
           </Button>
 
-          <span
-            className="min-w-[2rem] text-center text-sm font-medium text-foreground border-x border-border px-2 py-1"
+          <input
+            className="w-[3rem] text-center text-sm font-medium text-foreground border-x border-border px-2 py-1 bg-background focus:outline-none focus:ring-1 focus:ring-primary"
             aria-live="polite"
-          >
-            {item.quantity}
-          </span>
+            type="text"
+            inputMode="numeric"
+            value={quantity}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "");
+              setQuantity(val ? parseInt(val, 10) : 0);
+            }}
+            onBlur={(e) => {
+              const newQuantity = parseInt(e.target.value, 10);
+              if (!isNaN(newQuantity) && newQuantity > 0) {
+                onUpdateQuantity(
+                  item.productId,
+                  item.sku,
+                  newQuantity - item.quantity,
+                );
+              } else {
+                setQuantity(item.quantity);
+              }
+            }}
+          />
 
           <Button
             variant="ghost"
