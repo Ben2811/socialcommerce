@@ -29,7 +29,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 
-const shippingAddressSchema = z.object({
+const manualAddressSchema = z.object({
   street: z.string().min(1, "Địa chỉ không được để trống"),
   city: z.string().min(1, "Tỉnh/Thành phố không được để trống"),
   state: z.string().min(1, "Quận/Huyện không được để trống"),
@@ -37,7 +37,15 @@ const shippingAddressSchema = z.object({
   country: z.string().min(1, "Quốc gia không được để trống"),
 });
 
-type ShippingAddressFormData = z.infer<typeof shippingAddressSchema>;
+const savedAddressSchema = z.object({
+  street: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional().default("00000"),
+  country: z.string().optional(),
+});
+
+type ShippingAddressFormData = z.infer<typeof manualAddressSchema>;
 type AddressMode = "saved" | "manual";
 
 interface CheckoutDialogProps {
@@ -104,9 +112,6 @@ export function CheckoutDialog({
 
   const form = useForm({
     defaultValues: defaultShippingAddress(),
-    validators: {
-      onSubmit: shippingAddressSchema,
-    },
     onSubmit: async ({ value }) => {
       const selectedAddress =
         addressMode === "saved"
@@ -146,9 +151,24 @@ export function CheckoutDialog({
     }
   };
 
+  const handlePlaceOrder = async () => {
+    if (addressMode === "manual") {
+      const result = manualAddressSchema.safeParse(form.state.values);
+      if (!result.success) {
+        return;
+      }
+    } else {
+      const result = savedAddressSchema.safeParse(form.state.values);
+      if (!result.success) {
+        return;
+      }
+    }
+    await form.handleSubmit();
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="max-h-[90vh] w-[min(48rem,calc(100vw-2rem))] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] w-full max-w-5xl! overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" />
@@ -278,6 +298,7 @@ export function CheckoutDialog({
                 </RadioGroup>
               )}
 
+              {addressMode === "manual" && (
               <div className="rounded-md bg-muted/30 p-4">
                 <form
                   className="space-y-4"
@@ -301,7 +322,6 @@ export function CheckoutDialog({
                               field.handleChange(event.target.value)
                             }
                             placeholder="123 Nguyễn Huệ"
-                            disabled={addressMode === "saved"}
                           />
                           <FieldError errors={field.state.meta.errors} />
                         </Field>
@@ -323,7 +343,6 @@ export function CheckoutDialog({
                                 field.handleChange(event.target.value)
                               }
                               placeholder="TP. Hồ Chí Minh"
-                              disabled={addressMode === "saved"}
                             />
                             <FieldError errors={field.state.meta.errors} />
                           </Field>
@@ -344,7 +363,6 @@ export function CheckoutDialog({
                                 field.handleChange(event.target.value)
                               }
                               placeholder="Quận 1"
-                              disabled={addressMode === "saved"}
                             />
                             <FieldError errors={field.state.meta.errors} />
                           </Field>
@@ -367,7 +385,6 @@ export function CheckoutDialog({
                                 field.handleChange(event.target.value)
                               }
                               placeholder="700000"
-                              disabled={addressMode === "saved"}
                             />
                             <FieldError errors={field.state.meta.errors} />
                           </Field>
@@ -388,7 +405,6 @@ export function CheckoutDialog({
                                 field.handleChange(event.target.value)
                               }
                               placeholder="Vietnam"
-                              disabled={addressMode === "saved"}
                             />
                             <FieldError errors={field.state.meta.errors} />
                           </Field>
@@ -409,6 +425,7 @@ export function CheckoutDialog({
                   </div>
                 </form>
               </div>
+              )}
             </div>
           </div>
         </div>
@@ -420,7 +437,7 @@ export function CheckoutDialog({
           <Button
             variant="orange"
             disabled={isPending}
-            onClick={() => form.handleSubmit()}
+            onClick={() => handlePlaceOrder()}
           >
             {isCreatingOrder ? (
               <>
